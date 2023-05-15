@@ -1,0 +1,1079 @@
+<!DOCTYPE html>
+<html xmlns="http://www.w3.org/1999/xhtml" lang="en" xml:lang="en"><head>
+
+<meta charset="utf-8">
+<meta name="generator" content="quarto-1.2.335">
+
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes">
+
+<meta name="author" content="Wim Bernasco">
+
+<title>Regression models in R</title>
+<style>
+code{white-space: pre-wrap;}
+span.smallcaps{font-variant: small-caps;}
+div.columns{display: flex; gap: min(4vw, 1.5em);}
+div.column{flex: auto; overflow-x: auto;}
+div.hanging-indent{margin-left: 1.5em; text-indent: -1.5em;}
+ul.task-list{list-style: none;}
+ul.task-list li input[type="checkbox"] {
+  width: 0.8em;
+  margin: 0 0.8em 0.2em -1.6em;
+  vertical-align: middle;
+}
+pre > code.sourceCode { white-space: pre; position: relative; }
+pre > code.sourceCode > span { display: inline-block; line-height: 1.25; }
+pre > code.sourceCode > span:empty { height: 1.2em; }
+.sourceCode { overflow: visible; }
+code.sourceCode > span { color: inherit; text-decoration: inherit; }
+div.sourceCode { margin: 1em 0; }
+pre.sourceCode { margin: 0; }
+@media screen {
+div.sourceCode { overflow: auto; }
+}
+@media print {
+pre > code.sourceCode { white-space: pre-wrap; }
+pre > code.sourceCode > span { text-indent: -5em; padding-left: 5em; }
+}
+pre.numberSource code
+  { counter-reset: source-line 0; }
+pre.numberSource code > span
+  { position: relative; left: -4em; counter-increment: source-line; }
+pre.numberSource code > span > a:first-child::before
+  { content: counter(source-line);
+    position: relative; left: -1em; text-align: right; vertical-align: baseline;
+    border: none; display: inline-block;
+    -webkit-touch-callout: none; -webkit-user-select: none;
+    -khtml-user-select: none; -moz-user-select: none;
+    -ms-user-select: none; user-select: none;
+    padding: 0 4px; width: 4em;
+    color: #aaaaaa;
+  }
+pre.numberSource { margin-left: 3em; border-left: 1px solid #aaaaaa;  padding-left: 4px; }
+div.sourceCode
+  {   }
+@media screen {
+pre > code.sourceCode > span > a:first-child::before { text-decoration: underline; }
+}
+code span.al { color: #ff0000; font-weight: bold; } /* Alert */
+code span.an { color: #60a0b0; font-weight: bold; font-style: italic; } /* Annotation */
+code span.at { color: #7d9029; } /* Attribute */
+code span.bn { color: #40a070; } /* BaseN */
+code span.bu { color: #008000; } /* BuiltIn */
+code span.cf { color: #007020; font-weight: bold; } /* ControlFlow */
+code span.ch { color: #4070a0; } /* Char */
+code span.cn { color: #880000; } /* Constant */
+code span.co { color: #60a0b0; font-style: italic; } /* Comment */
+code span.cv { color: #60a0b0; font-weight: bold; font-style: italic; } /* CommentVar */
+code span.do { color: #ba2121; font-style: italic; } /* Documentation */
+code span.dt { color: #902000; } /* DataType */
+code span.dv { color: #40a070; } /* DecVal */
+code span.er { color: #ff0000; font-weight: bold; } /* Error */
+code span.ex { } /* Extension */
+code span.fl { color: #40a070; } /* Float */
+code span.fu { color: #06287e; } /* Function */
+code span.im { color: #008000; font-weight: bold; } /* Import */
+code span.in { color: #60a0b0; font-weight: bold; font-style: italic; } /* Information */
+code span.kw { color: #007020; font-weight: bold; } /* Keyword */
+code span.op { color: #666666; } /* Operator */
+code span.ot { color: #007020; } /* Other */
+code span.pp { color: #bc7a00; } /* Preprocessor */
+code span.sc { color: #4070a0; } /* SpecialChar */
+code span.ss { color: #bb6688; } /* SpecialString */
+code span.st { color: #4070a0; } /* String */
+code span.va { color: #19177c; } /* Variable */
+code span.vs { color: #4070a0; } /* VerbatimString */
+code span.wa { color: #60a0b0; font-weight: bold; font-style: italic; } /* Warning */
+</style>
+
+
+<script src="regression_spotify_files/libs/clipboard/clipboard.min.js"></script>
+<script src="regression_spotify_files/libs/quarto-html/quarto.js"></script>
+<script src="regression_spotify_files/libs/quarto-html/popper.min.js"></script>
+<script src="regression_spotify_files/libs/quarto-html/tippy.umd.min.js"></script>
+<script src="regression_spotify_files/libs/quarto-html/anchor.min.js"></script>
+<link href="regression_spotify_files/libs/quarto-html/tippy.css" rel="stylesheet">
+<link href="regression_spotify_files/libs/quarto-html/quarto-syntax-highlighting.css" rel="stylesheet" id="quarto-text-highlighting-styles">
+<script src="regression_spotify_files/libs/bootstrap/bootstrap.min.js"></script>
+<link href="regression_spotify_files/libs/bootstrap/bootstrap-icons.css" rel="stylesheet">
+<link href="regression_spotify_files/libs/bootstrap/bootstrap.min.css" rel="stylesheet" id="quarto-bootstrap" data-mode="light">
+
+  <script src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-chtml-full.js" type="text/javascript"></script>
+
+</head>
+
+<body class="fullcontent">
+
+<div id="quarto-content" class="page-columns page-rows-contents page-layout-article">
+
+<main class="content" id="quarto-document-content">
+
+<header id="title-block-header" class="quarto-title-block default">
+<div class="quarto-title">
+<h1 class="title">Regression models in R</h1>
+</div>
+
+
+
+<div class="quarto-title-meta">
+
+    <div>
+    <div class="quarto-title-meta-heading">Author</div>
+    <div class="quarto-title-meta-contents">
+             <p>Wim Bernasco </p>
+          </div>
+  </div>
+    
+  
+    
+  </div>
+  
+
+</header>
+
+<section id="about-the-nsc-r-workshops-and-nsc-r-tidy-tuesdays" class="level2">
+<h2 class="anchored" data-anchor-id="about-the-nsc-r-workshops-and-nsc-r-tidy-tuesdays">About the NSC-R workshops and NSC-R Tidy Tuesdays</h2>
+<p>The NSC-R Workshops is a series of one-hour online (currently hybrid) instructional sessions to support participants in developing their data science skills in R, and to promote open science principles.</p>
+<p>The NSC-R workshop meetings are organized by a team affiliated with the Netherlands Institute for the Study of Crime and Law Enforcement (NSCR), but they are open to everyone, regardless of affiliation or skill level.</p>
+<p>There are workshops on specific topics (e.g.&nbsp;network analysis, missing values) and Tidy Tuesday workshops that cover more basic skills and materials.</p>
+<p>The NSC-R Tidy Tuesday workshop sessions are inspired by the <a href="https://www.tidytuesday.com/">Tidy Tuesday initiative</a>, which is aimed at providing a safe and supportive forum for individuals to practice their data processing and visualization skills in R while working with real-world data.</p>
+<p>Check out <a href="https://nscrweb.netlify.app/blog.html">the NSC-R Workshops website</a> for details of past and future events.</p>
+</section>
+<section id="this-tidy-tuesday-on-spotify-song-popularity" class="level2">
+<h2 class="anchored" data-anchor-id="this-tidy-tuesday-on-spotify-song-popularity">This Tidy Tuesday on Spotify song popularity</h2>
+<p>In this workshop, which took place on May 9, 2023, I tried to model song popularity using a dataset of tracks on Spotify.</p>
+<p>Even if you have no interest in popular music at all, you may find these workshop materials instructive for getting ideas on how to do regression analysis in R.</p>
+<p>I did not delve into statistics, but rather showed how to get linear regression and logistic regression models running in R and generate useful and reproducible output. The focus was on ordinary least squares and logistic regression, but the techniques are easily be generalized to other regression models.</p>
+</section>
+<section id="packages-for-this-session" class="level2">
+<h2 class="anchored" data-anchor-id="packages-for-this-session">Packages for this session</h2>
+<p>I like to work with functions in the <code>tidyverse</code> suite of packages, so I load them right at the start.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb1"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb1-1"><a href="#cb1-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(tidyverse)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stderr">
+<pre><code>── Attaching core tidyverse packages ──────────────────────── tidyverse 2.0.0 ──
+✔ dplyr     1.1.1     ✔ readr     2.1.4
+✔ forcats   1.0.0     ✔ stringr   1.5.0
+✔ ggplot2   3.4.2     ✔ tibble    3.2.1
+✔ lubridate 1.9.2     ✔ tidyr     1.3.0
+✔ purrr     1.0.1     
+── Conflicts ────────────────────────────────────────── tidyverse_conflicts() ──
+✖ dplyr::filter() masks stats::filter()
+✖ dplyr::lag()    masks stats::lag()
+ℹ Use the conflicted package (&lt;http://conflicted.r-lib.org/&gt;) to force all conflicts to become errors</code></pre>
+</div>
+</div>
+</section>
+<section id="read-the-data" class="level2">
+<h2 class="anchored" data-anchor-id="read-the-data">Read the data</h2>
+<p>I will use data from Spotify that were analyzed in the ‘real’ Tidy Tuesday session of January 21, 2020. This was when the COVID pandemic just started. Remember? You can find the code and findings for that session <a href="https://rpubs.com/amrirohman/spotify-song">here</a>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb3"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb3-1"><a href="#cb3-1" aria-hidden="true" tabindex="-1"></a><span class="co"># read data</span></span>
+<span id="cb3-2"><a href="#cb3-2" aria-hidden="true" tabindex="-1"></a>spotify_songs <span class="ot">&lt;-</span></span>
+<span id="cb3-3"><a href="#cb3-3" aria-hidden="true" tabindex="-1"></a><span class="fu">read_csv</span>(<span class="at">file =</span> <span class="st">"https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-21/spotify_songs.csv"</span>, <span class="at">show_col_types =</span> <span class="cn">FALSE</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>To get an idea on what types of variables are included, I use the <code>glimpse</code> function.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb4"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb4-1"><a href="#cb4-1" aria-hidden="true" tabindex="-1"></a><span class="co"># data snapshot</span></span>
+<span id="cb4-2"><a href="#cb4-2" aria-hidden="true" tabindex="-1"></a>spotify_songs <span class="sc">|&gt;</span></span>
+<span id="cb4-3"><a href="#cb4-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">glimpse</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 32,833
+Columns: 23
+$ track_id                 &lt;chr&gt; "6f807x0ima9a1j3VPbc7VN", "0r7CVbZTWZgbTCYdfa…
+$ track_name               &lt;chr&gt; "I Don't Care (with Justin Bieber) - Loud Lux…
+$ track_artist             &lt;chr&gt; "Ed Sheeran", "Maroon 5", "Zara Larsson", "Th…
+$ track_popularity         &lt;dbl&gt; 66, 67, 70, 60, 69, 67, 62, 69, 68, 67, 58, 6…
+$ track_album_id           &lt;chr&gt; "2oCs0DGTsRO98Gh5ZSl2Cx", "63rPSO264uRjW1X5E6…
+$ track_album_name         &lt;chr&gt; "I Don't Care (with Justin Bieber) [Loud Luxu…
+$ track_album_release_date &lt;chr&gt; "2019-06-14", "2019-12-13", "2019-07-05", "20…
+$ playlist_name            &lt;chr&gt; "Pop Remix", "Pop Remix", "Pop Remix", "Pop R…
+$ playlist_id              &lt;chr&gt; "37i9dQZF1DXcZDD7cfEKhW", "37i9dQZF1DXcZDD7cf…
+$ playlist_genre           &lt;chr&gt; "pop", "pop", "pop", "pop", "pop", "pop", "po…
+$ playlist_subgenre        &lt;chr&gt; "dance pop", "dance pop", "dance pop", "dance…
+$ danceability             &lt;dbl&gt; 0.748, 0.726, 0.675, 0.718, 0.650, 0.675, 0.4…
+$ energy                   &lt;dbl&gt; 0.916, 0.815, 0.931, 0.930, 0.833, 0.919, 0.8…
+$ key                      &lt;dbl&gt; 6, 11, 1, 7, 1, 8, 5, 4, 8, 2, 6, 8, 1, 5, 5,…
+$ loudness                 &lt;dbl&gt; -2.634, -4.969, -3.432, -3.778, -4.672, -5.38…
+$ mode                     &lt;dbl&gt; 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, …
+$ speechiness              &lt;dbl&gt; 0.0583, 0.0373, 0.0742, 0.1020, 0.0359, 0.127…
+$ acousticness             &lt;dbl&gt; 0.10200, 0.07240, 0.07940, 0.02870, 0.08030, …
+$ instrumentalness         &lt;dbl&gt; 0.00e+00, 4.21e-03, 2.33e-05, 9.43e-06, 0.00e…
+$ liveness                 &lt;dbl&gt; 0.0653, 0.3570, 0.1100, 0.2040, 0.0833, 0.143…
+$ valence                  &lt;dbl&gt; 0.518, 0.693, 0.613, 0.277, 0.725, 0.585, 0.1…
+$ tempo                    &lt;dbl&gt; 122.036, 99.972, 124.008, 121.956, 123.976, 1…
+$ duration_ms              &lt;dbl&gt; 194754, 162600, 176616, 169093, 189052, 16304…</code></pre>
+</div>
+</div>
+</section>
+<section id="a-little-bit-of-pre-processing" class="level2">
+<h2 class="anchored" data-anchor-id="a-little-bit-of-pre-processing">A little bit of pre-processing</h2>
+<p>I noticed that a unique track (song) is listed multiple times in the data if it appears on multiple albums of an artist (e.g.&nbsp;a “greatest hits” compilation) or an album version with bonuses. It can also appear multiple times in the data if it is in multiple Spotify playlists. Here is an example:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb6"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb6-1"><a href="#cb6-1" aria-hidden="true" tabindex="-1"></a>spotify_songs <span class="sc">|&gt;</span></span>
+<span id="cb6-2"><a href="#cb6-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(track_artist <span class="sc">==</span> <span class="st">"Ed Sheeran"</span>, </span>
+<span id="cb6-3"><a href="#cb6-3" aria-hidden="true" tabindex="-1"></a>         track_name <span class="sc">==</span> <span class="st">"Thinking out Loud"</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb6-4"><a href="#cb6-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">arrange</span>(track_id) <span class="sc">|&gt;</span> </span>
+<span id="cb6-5"><a href="#cb6-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(track_artist, track_name, </span>
+<span id="cb6-6"><a href="#cb6-6" aria-hidden="true" tabindex="-1"></a>         track_album_name, playlist_name) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 4 × 4
+  track_artist track_name        track_album_name    playlist_name              
+  &lt;chr&gt;        &lt;chr&gt;             &lt;chr&gt;               &lt;chr&gt;                      
+1 Ed Sheeran   Thinking out Loud x (Wembley Edition) "Post-teen pop"            
+2 Ed Sheeran   Thinking out Loud x (Wembley Edition) "Today's Hits 2000-Present"
+3 Ed Sheeran   Thinking out Loud x (Deluxe Edition)  "Unplugged Hits \U0001f4e3"
+4 Ed Sheeran   Thinking out Loud x (Deluxe Edition)  "2010 - 2011 - 2012 - 2013…</code></pre>
+</div>
+</div>
+<p>To correct for this feature, I select a single instance of each song and save the result in a new data frame which a label <code>spotify_songs_clean</code>. I<br>
+obviously lose information on album and playlist appearance, but that is no problem for my analysis. To get rid of unwanted information, I unselect album and playlist variables.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb8"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb8-1"><a href="#cb8-1" aria-hidden="true" tabindex="-1"></a>spotify_songs_clean <span class="ot">&lt;-</span></span>
+<span id="cb8-2"><a href="#cb8-2" aria-hidden="true" tabindex="-1"></a>  <span class="co"># start with the raw data</span></span>
+<span id="cb8-3"><a href="#cb8-3" aria-hidden="true" tabindex="-1"></a>  spotify_songs <span class="sc">|&gt;</span></span>
+<span id="cb8-4"><a href="#cb8-4" aria-hidden="true" tabindex="-1"></a>  <span class="co"># define groups </span></span>
+<span id="cb8-5"><a href="#cb8-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">group_by</span>(track_artist, track_name) <span class="sc">|&gt;</span></span>
+<span id="cb8-6"><a href="#cb8-6" aria-hidden="true" tabindex="-1"></a>  <span class="co"># select only the first instance of each group</span></span>
+<span id="cb8-7"><a href="#cb8-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(<span class="fu">row_number</span>() <span class="sc">==</span> <span class="dv">1</span>) <span class="sc">|&gt;</span></span>
+<span id="cb8-8"><a href="#cb8-8" aria-hidden="true" tabindex="-1"></a>  <span class="co"># the grouping is no longer needed</span></span>
+<span id="cb8-9"><a href="#cb8-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ungroup</span>() <span class="sc">|&gt;</span></span>
+<span id="cb8-10"><a href="#cb8-10" aria-hidden="true" tabindex="-1"></a>  <span class="co"># remove variables no longer needed</span></span>
+<span id="cb8-11"><a href="#cb8-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">select</span>(<span class="sc">-</span>track_id, <span class="sc">-</span>track_album_id, <span class="sc">-</span>track_album_name,</span>
+<span id="cb8-12"><a href="#cb8-12" aria-hidden="true" tabindex="-1"></a>         <span class="sc">-</span>track_album_release_date, </span>
+<span id="cb8-13"><a href="#cb8-13" aria-hidden="true" tabindex="-1"></a>         <span class="sc">-</span>playlist_name, <span class="sc">-</span>playlist_id, <span class="sc">-</span>playlist_genre,</span>
+<span id="cb8-14"><a href="#cb8-14" aria-hidden="true" tabindex="-1"></a>         <span class="sc">-</span>playlist_subgenre) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+</section>
+<section id="nominal-categorical-and-dichtomous-binary-variables" class="level2">
+<h2 class="anchored" data-anchor-id="nominal-categorical-and-dichtomous-binary-variables">Nominal (categorical) and dichtomous (binary) variables</h2>
+<p>A nominal or categorical variable is a variable for which the values have no intrinsic natural order. For example, there is no natural order in car brands (“Mercedes”, “Toyota”, “Ford”, “Renault”, …), color (“Red”, “Green”, “Blue”) or gender (“Female”, “Male”, “Non-binary”), irrespective of whether their values are coded as numbers in your dataset. You could code car brand with numbers in your data for practical reasons (“Mercedes” = 1, “Toyota” = 2, “Ford = 3), but that would not mean that Toyota would be ‘larger’ in some way than Mercedes.</p>
+<p>A dichotomous or binary variable is a variable that can only take on two different values. If these values are <span class="math inline">\(0\)</span> and <span class="math inline">\(1\)</span> they are also referred to as <em>dummy</em> variables.</p>
+<p>In the Spotify dataset, I create one nominal (categorical) and one binary (dichotomous) variable by converting their original numerical versions into <code>factors</code>, which is the term used in R to refer to nominal variables. These are <code>mode</code> and <code>key</code>. <code>mode</code> is a binary variable. It indicates whether the song is in a happy-sounding <em>major</em> scale or in a melancholic-sounding <em>minor</em> scale. <code>key</code> is a nominal variables. It indicates in which musical key the song is played. No problem if you have no idea what this means. There are 12 different keys.</p>
+<p>I give the two new factor variables the name of their original versions with an “_fct” suffix. This will help me remember they are factor varibales when I seen their names.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb9"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb9-1"><a href="#cb9-1" aria-hidden="true" tabindex="-1"></a>spotify_songs_clean_fct <span class="ot">&lt;-</span></span>
+<span id="cb9-2"><a href="#cb9-2" aria-hidden="true" tabindex="-1"></a>  spotify_songs_clean <span class="sc">|&gt;</span></span>
+<span id="cb9-3"><a href="#cb9-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">mode_fct =</span> <span class="fu">factor</span>(mode, </span>
+<span id="cb9-4"><a href="#cb9-4" aria-hidden="true" tabindex="-1"></a>                       <span class="at">levels =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>,</span>
+<span id="cb9-5"><a href="#cb9-5" aria-hidden="true" tabindex="-1"></a>                       <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"minor"</span>, <span class="st">"major"</span>)),</span>
+<span id="cb9-6"><a href="#cb9-6" aria-hidden="true" tabindex="-1"></a>         <span class="at">key_fct =</span> <span class="fu">factor</span>(key, </span>
+<span id="cb9-7"><a href="#cb9-7" aria-hidden="true" tabindex="-1"></a>                      <span class="at">levels =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">11</span>,</span>
+<span id="cb9-8"><a href="#cb9-8" aria-hidden="true" tabindex="-1"></a>                      <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"C"</span>, <span class="st">"C#"</span>, <span class="st">"D"</span>, <span class="st">"D#"</span>, <span class="st">"E"</span>, <span class="st">"F"</span>,</span>
+<span id="cb9-9"><a href="#cb9-9" aria-hidden="true" tabindex="-1"></a>                                 <span class="st">"F#"</span>, <span class="st">"G"</span>, <span class="st">"G#"</span>, <span class="st">"A"</span>, <span class="st">"A#"</span>, <span class="st">"B"</span>)))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Let me take a snaphot of the new data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb10"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb10-1"><a href="#cb10-1" aria-hidden="true" tabindex="-1"></a>spotify_songs_clean_fct <span class="sc">|&gt;</span></span>
+<span id="cb10-2"><a href="#cb10-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">glimpse</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>Rows: 26,230
+Columns: 17
+$ track_name       &lt;chr&gt; "I Don't Care (with Justin Bieber) - Loud Luxury Remi…
+$ track_artist     &lt;chr&gt; "Ed Sheeran", "Maroon 5", "Zara Larsson", "The Chains…
+$ track_popularity &lt;dbl&gt; 66, 67, 70, 60, 69, 67, 62, 69, 68, 67, 58, 67, 67, 6…
+$ danceability     &lt;dbl&gt; 0.748, 0.726, 0.675, 0.718, 0.650, 0.675, 0.449, 0.54…
+$ energy           &lt;dbl&gt; 0.916, 0.815, 0.931, 0.930, 0.833, 0.919, 0.856, 0.90…
+$ key              &lt;dbl&gt; 6, 11, 1, 7, 1, 8, 5, 4, 8, 2, 6, 8, 1, 5, 5, 0, 1, 1…
+$ loudness         &lt;dbl&gt; -2.634, -4.969, -3.432, -3.778, -4.672, -5.385, -4.78…
+$ mode             &lt;dbl&gt; 1, 1, 0, 1, 1, 1, 0, 0, 1, 1, 1, 1, 1, 0, 0, 1, 0, 0,…
+$ speechiness      &lt;dbl&gt; 0.0583, 0.0373, 0.0742, 0.1020, 0.0359, 0.1270, 0.062…
+$ acousticness     &lt;dbl&gt; 0.10200, 0.07240, 0.07940, 0.02870, 0.08030, 0.07990,…
+$ instrumentalness &lt;dbl&gt; 0.00e+00, 4.21e-03, 2.33e-05, 9.43e-06, 0.00e+00, 0.0…
+$ liveness         &lt;dbl&gt; 0.0653, 0.3570, 0.1100, 0.2040, 0.0833, 0.1430, 0.176…
+$ valence          &lt;dbl&gt; 0.518, 0.693, 0.613, 0.277, 0.725, 0.585, 0.152, 0.36…
+$ tempo            &lt;dbl&gt; 122.036, 99.972, 124.008, 121.956, 123.976, 124.982, …
+$ duration_ms      &lt;dbl&gt; 194754, 162600, 176616, 169093, 189052, 163049, 18767…
+$ mode_fct         &lt;fct&gt; major, major, minor, major, major, major, minor, mino…
+$ key_fct          &lt;fct&gt; F#, B, C#, G, C#, G#, F, E, G#, D, F#, G#, C#, F, F, …</code></pre>
+</div>
+</div>
+</section>
+<section id="my-first-ordinary-least-squares-regression" class="level2">
+<h2 class="anchored" data-anchor-id="my-first-ordinary-least-squares-regression">My first ordinary least squares regression</h2>
+<p>Before trying to model song popularity, let me first get in impression of how popularity is distributed. I like <code>ggplot</code> in black and white but have its grey default, so:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb12"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb12-1"><a href="#cb12-1" aria-hidden="true" tabindex="-1"></a>spotify_songs_clean_fct <span class="sc">|&gt;</span></span>
+<span id="cb12-2"><a href="#cb12-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb12-3"><a href="#cb12-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">x =</span> track_popularity), </span>
+<span id="cb12-4"><a href="#cb12-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">color =</span> <span class="st">"black"</span>,</span>
+<span id="cb12-5"><a href="#cb12-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">fill =</span> <span class="st">"white"</span>,</span>
+<span id="cb12-6"><a href="#cb12-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">binwidth =</span> <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="regression_spotify_files/figure-html/unnamed-chunk-8-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Because this looks pretty much like a normal distribution except for the large number of songs with zero popularity, I will remove rows with missing values and, store the result in yet another version of the data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb13"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb13-1"><a href="#cb13-1" aria-hidden="true" tabindex="-1"></a>spotify_songs_clean_NA <span class="ot">&lt;-</span></span>
+<span id="cb13-2"><a href="#cb13-2" aria-hidden="true" tabindex="-1"></a>  spotify_songs_clean_fct <span class="sc">|&gt;</span></span>
+<span id="cb13-3"><a href="#cb13-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(track_popularity <span class="sc">&gt;</span> <span class="dv">0</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>Make the histogram again using the new data.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb14"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb14-1"><a href="#cb14-1" aria-hidden="true" tabindex="-1"></a>spotify_songs_clean_NA <span class="sc">|&gt;</span></span>
+<span id="cb14-2"><a href="#cb14-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb14-3"><a href="#cb14-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_histogram</span>(<span class="fu">aes</span>(<span class="at">x =</span> track_popularity), </span>
+<span id="cb14-4"><a href="#cb14-4" aria-hidden="true" tabindex="-1"></a>                 <span class="at">color =</span> <span class="st">"black"</span>,</span>
+<span id="cb14-5"><a href="#cb14-5" aria-hidden="true" tabindex="-1"></a>                 <span class="at">fill =</span> <span class="st">"white"</span>,</span>
+<span id="cb14-6"><a href="#cb14-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">binwidth =</span> <span class="dv">5</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="regression_spotify_files/figure-html/unnamed-chunk-10-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Now I am ready to conduct a regression analysis. The <code>lm</code> function is for ordinary least squares regression. Like all regression functions in R (that I know about) the <code>lm</code> function needs at least two arguments. One is the <strong>data</strong> used for estimation, the other is the equation to be estimated (which is called a <strong>formula</strong> in R). The formula must contain only variables included in the data.</p>
+<p>Let me first do it and then explain.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb15"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb15-1"><a href="#cb15-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> mode,</span>
+<span id="cb15-2"><a href="#cb15-2" aria-hidden="true" tabindex="-1"></a>   <span class="at">data    =</span> spotify_songs_clean_NA)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = track_popularity ~ mode, data = spotify_songs_clean_NA)
+
+Coefficients:
+(Intercept)         mode  
+    42.8751       0.9812  </code></pre>
+</div>
+</div>
+<p>I called the <code>lm</code> function with two arguments. The first is the <code>formula</code> argument. A formula is an equation with the right-hand side separated from the left-hand side with a tilde symbol (“~”). In regression contexts, the left-hand side contains the dependent variable, the right-hand side the independent variables. Thus, the equation <code>Y ~ X1 + X2</code> says “estimate a linear regression of Y on X1 and X2”. The equation <code>track_popularity ~ mode</code> says “estimate a linear regression of <code>track_popularity</code> on <code>mode</code>. Note that the regression coefficients to be estimated are implicit. Thus, if the complete regression equation is <span class="math display">\[ Y = \beta_{0} + \beta_{1} \times X_{1} +
+                    \beta_{2} \times X_{2}\]</span></p>
+<p>I do not need to specify the <span class="math inline">\(\beta\)</span> coefficients.</p>
+<p>By default, the <code>lm</code> function will print just two things, namely (1) an echo of the data and formula arguments, and (2) the estimated values of the unstandardized coefficients, which here are the intercept (constant term) and the coefficient of <code>mode</code>.</p>
+<p>Thus, according to the model, the mean popularity of songs in a minor scale is 42.88, while songs in a major scale score almost 1 point (0.98) higher. Not much, on a range between 0 and 100, but statistically significant nevertheless.</p>
+<p>As we will see in a minute, a lot of additional information is being generated when you estimate a regression model, but it will be hidden if you just call the <code>lm</code> function. Funny enough, the <code>summary</code> function provides more details.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb17"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb17-1"><a href="#cb17-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> mode_fct,</span>
+<span id="cb17-2"><a href="#cb17-2" aria-hidden="true" tabindex="-1"></a>   <span class="at">data    =</span> spotify_songs_clean_NA) <span class="sc">|&gt;</span></span>
+<span id="cb17-3"><a href="#cb17-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summary</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = track_popularity ~ mode_fct, data = spotify_songs_clean_NA)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-42.856 -13.856   2.125  15.144  55.125 
+
+Coefficients:
+              Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)    42.8751     0.2021 212.118  &lt; 2e-16 ***
+mode_fctmajor   0.9812     0.2690   3.647 0.000265 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 20.6 on 23859 degrees of freedom
+Multiple R-squared:  0.0005573, Adjusted R-squared:  0.0005154 
+F-statistic:  13.3 on 1 and 23859 DF,  p-value: 0.0002654</code></pre>
+</div>
+</div>
+<p>You may wonder why the independent variable has been labeled <code>mode_fctmajor</code> in the output. When the <code>lm</code> function encounters a factor (i.e., a nominal variable) in the <code>formula</code>, it creates a set of dummy (0/1) variables, one for each category except the first category. These dummy variables are labeled with the name of the factor followed by the label of the category. So, because <code>minor</code> is the first category, for <code>mode</code> this becomes <code>mode_fctmajor</code>. I will now estimate a model with <code>key_fct</code> as the only independent variable. Are there any specific keys that make a song more popular than song in other keys?</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb19"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb19-1"><a href="#cb19-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> key_fct,</span>
+<span id="cb19-2"><a href="#cb19-2" aria-hidden="true" tabindex="-1"></a>   <span class="at">data    =</span> spotify_songs_clean_NA) <span class="sc">|&gt;</span></span>
+<span id="cb19-3"><a href="#cb19-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summary</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = track_popularity ~ key_fct, data = spotify_songs_clean_NA)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-44.028 -13.406   1.737  15.710  54.956 
+
+Coefficients:
+            Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept) 43.71791    0.40694 107.431  &lt; 2e-16 ***
+key_fctC#   -0.31224    0.55880  -0.559  0.57632    
+key_fctD    -0.67388    0.60905  -1.106  0.26854    
+key_fctD#   -1.14356    0.88561  -1.291  0.19662    
+key_fctE    -0.42773    0.65653  -0.651  0.51473    
+key_fctF    -0.02676    0.62182  -0.043  0.96567    
+key_fctF#   -0.76630    0.62359  -1.229  0.21914    
+key_fctG    -1.57424    0.58167  -2.706  0.00681 ** 
+key_fctG#    1.31029    0.63638   2.059  0.03951 *  
+key_fctA     0.30758    0.59899   0.514  0.60761    
+key_fctA#    0.13863    0.65001   0.213  0.83112    
+key_fctB    -0.45536    0.60235  -0.756  0.44967    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 20.6 on 23849 degrees of freedom
+Multiple R-squared:  0.001121,  Adjusted R-squared:  0.0006599 
+F-statistic: 2.432 on 11 and 23849 DF,  p-value: 0.00502</code></pre>
+</div>
+</div>
+<p>As there are 12 different keys, the <code>lm</code> function has automatically created 11 dummy variables (from “C#” to “B”), omitting the “C” key which is the reference category.</p>
+<p>The <code>summary</code> function can be very practical to quickly display the main features of a model on screen, but my advise is to use it only interactively and not use it in your scripts. Here is why.</p>
+<p>To use the information (such as estimates, standard errors, p-values, <span class="math inline">\(R^2\)</span>) and do something useful with it, you better save the results of the <code>lm</code> function in an R object. To help myself remember that the object is output of the <code>lm</code> function, I label it <code>model_lm_output_1</code>.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb21"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb21-1"><a href="#cb21-1" aria-hidden="true" tabindex="-1"></a>model_lm_output_1 <span class="ot">&lt;-</span> </span>
+<span id="cb21-2"><a href="#cb21-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> mode_fct,</span>
+<span id="cb21-3"><a href="#cb21-3" aria-hidden="true" tabindex="-1"></a>     <span class="at">data    =</span> spotify_songs_clean_NA)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>All details of the estimated model are now in <code>model_lm_output_1</code>, and I can still call the <code>summary</code> function to see it on screen:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb22"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb22-1"><a href="#cb22-1" aria-hidden="true" tabindex="-1"></a>model_lm_output_1 <span class="sc">|&gt;</span> </span>
+<span id="cb22-2"><a href="#cb22-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summary</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = track_popularity ~ mode_fct, data = spotify_songs_clean_NA)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-42.856 -13.856   2.125  15.144  55.125 
+
+Coefficients:
+              Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)    42.8751     0.2021 212.118  &lt; 2e-16 ***
+mode_fctmajor   0.9812     0.2690   3.647 0.000265 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 20.6 on 23859 degrees of freedom
+Multiple R-squared:  0.0005573, Adjusted R-squared:  0.0005154 
+F-statistic:  13.3 on 1 and 23859 DF,  p-value: 0.0002654</code></pre>
+</div>
+</div>
+<p>To make sure that my regression results are reproducible, I should <strong>never</strong> estimate a model and manually copy and paste the results. This is very error-prone and not reproducible.</p>
+</section>
+<section id="interactions" class="level2">
+<h2 class="anchored" data-anchor-id="interactions">Interactions</h2>
+<p>You are probably aware that in a regression model, the relation between an independent variable and the dependent variable may be affected by the value of a third variable. The resulting effect is called an <em>interaction</em> or <em>interaction effect</em>. For example, the relation between <code>Y</code> and <code>X1</code> might depend on the value of <code>X2</code></p>
+<p><span class="math display">\[ Y = \beta_{0} + \beta_{1} \times X_{1} +
+                    \beta_{2} \times X_{2} +
+                    \beta_{3} \times (X_{1} \times X_{2})\]</span></p>
+<p>In our analysis of popularity of Spotify songs, this could be:</p>
+<p><span class="math display">\[ track\_popularity = \alpha + \beta_{2} \times danceability +
+                    \beta_{3} \times mode\_fct +
+                    \beta_{4} \times danceability \times mode\_fct)\]</span></p>
+<p>To include an interaction term in your model, you could create a new variable in your dataset that represents the interaction, typically by multiplying to two independent variables involved (you need to convert the factor variable mode to numeric (0,1) to do this, and mentally keep track of the fact that 0 means the song is in minor key and 1 means the song is in major key):</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb24"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb24-1"><a href="#cb24-1" aria-hidden="true" tabindex="-1"></a>spotify_songs_clean_NA_Plus <span class="ot">&lt;-</span></span>
+<span id="cb24-2"><a href="#cb24-2" aria-hidden="true" tabindex="-1"></a>  spotify_songs_clean_NA<span class="sc">|&gt;</span></span>
+<span id="cb24-3"><a href="#cb24-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">danceability_x_mode =</span> danceability <span class="sc">*</span> mode)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>and subsequently include the new variable in your regression model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb25"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb25-1"><a href="#cb25-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> mode <span class="sc">+</span> danceability <span class="sc">+</span> </span>
+<span id="cb25-2"><a href="#cb25-2" aria-hidden="true" tabindex="-1"></a>     danceability_x_mode,</span>
+<span id="cb25-3"><a href="#cb25-3" aria-hidden="true" tabindex="-1"></a>   <span class="at">data    =</span> spotify_songs_clean_NA_Plus)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = track_popularity ~ mode + danceability + danceability_x_mode, 
+    data = spotify_songs_clean_NA_Plus)
+
+Coefficients:
+        (Intercept)                 mode         danceability  
+             37.258                4.142                8.462  
+danceability_x_mode  
+             -4.676  </code></pre>
+</div>
+</div>
+<p>Alternatively, you could use a shorthand notation to include the interaction effect without creating a new variable in your dataset (note that here I do not use the numerical version <code>mode</code>but the factor version <code>mode_fct</code>).</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb27"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb27-1"><a href="#cb27-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> mode_fct <span class="sc">+</span> danceability <span class="sc">+</span> </span>
+<span id="cb27-2"><a href="#cb27-2" aria-hidden="true" tabindex="-1"></a>     danceability <span class="sc">:</span> mode_fct,</span>
+<span id="cb27-3"><a href="#cb27-3" aria-hidden="true" tabindex="-1"></a>   <span class="at">data    =</span> spotify_songs_clean_NA)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = track_popularity ~ mode_fct + danceability + danceability:mode_fct, 
+    data = spotify_songs_clean_NA)
+
+Coefficients:
+               (Intercept)               mode_fctmajor  
+                    37.258                       4.142  
+              danceability  mode_fctmajor:danceability  
+                     8.462                      -4.676  </code></pre>
+</div>
+</div>
+<p>The colon symbol (“:”) can be read as “create a variable that is the multiplication of the variables on both sides of me, and include the result as a variable in the equation”. This is shorter, and saves you from remembering how <code>mode</code> was coded.</p>
+<p>Because in most situations you will also want to include the main effects of the variables involved in the interaction, there is another shorthand notation for this:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb29"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb29-1"><a href="#cb29-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> mode_fct <span class="sc">*</span> danceability,</span>
+<span id="cb29-2"><a href="#cb29-2" aria-hidden="true" tabindex="-1"></a>   <span class="at">data    =</span> spotify_songs_clean_NA)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = track_popularity ~ mode_fct * danceability, data = spotify_songs_clean_NA)
+
+Coefficients:
+               (Intercept)               mode_fctmajor  
+                    37.258                       4.142  
+              danceability  mode_fctmajor:danceability  
+                     8.462                      -4.676  </code></pre>
+</div>
+</div>
+<p>Let’s now include other potentially relevant song characteristics and see whether they help predict popularity:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb31"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb31-1"><a href="#cb31-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> mode_fct <span class="sc">+</span> danceability <span class="sc">+</span> </span>
+<span id="cb31-2"><a href="#cb31-2" aria-hidden="true" tabindex="-1"></a>     energy <span class="sc">+</span> loudness <span class="sc">+</span> speechiness <span class="sc">+</span> acousticness <span class="sc">+</span></span>
+<span id="cb31-3"><a href="#cb31-3" aria-hidden="true" tabindex="-1"></a>     instrumentalness <span class="sc">+</span> liveness <span class="sc">+</span> valence <span class="sc">+</span> tempo <span class="sc">+</span></span>
+<span id="cb31-4"><a href="#cb31-4" aria-hidden="true" tabindex="-1"></a>     duration_ms,</span>
+<span id="cb31-5"><a href="#cb31-5" aria-hidden="true" tabindex="-1"></a>   <span class="at">data    =</span> spotify_songs_clean_NA) <span class="sc">|&gt;</span></span>
+<span id="cb31-6"><a href="#cb31-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">summary</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = track_popularity ~ mode_fct + danceability + energy + 
+    loudness + speechiness + acousticness + instrumentalness + 
+    liveness + valence + tempo + duration_ms, data = spotify_songs_clean_NA)
+
+Residuals:
+    Min      1Q  Median      3Q     Max 
+-54.397 -13.148   1.839  15.258  57.345 
+
+Coefficients:
+                   Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)       6.551e+01  1.602e+00  40.904  &lt; 2e-16 ***
+mode_fctmajor     1.019e+00  2.631e-01   3.874 0.000107 ***
+danceability      1.622e+00  1.020e+00   1.590 0.111756    
+energy           -2.017e+01  1.158e+00 -17.417  &lt; 2e-16 ***
+loudness          1.082e+00  6.251e-02  17.304  &lt; 2e-16 ***
+speechiness      -3.589e+00  1.306e+00  -2.747 0.006015 ** 
+acousticness      2.638e+00  6.966e-01   3.787 0.000153 ***
+instrumentalness -8.841e+00  5.904e-01 -14.976  &lt; 2e-16 ***
+liveness         -1.757e+00  8.708e-01  -2.018 0.043601 *  
+valence           3.565e+00  6.256e-01   5.698 1.23e-08 ***
+tempo             2.326e-02  4.953e-03   4.697 2.66e-06 ***
+duration_ms      -2.652e-05  2.216e-06 -11.971  &lt; 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 20.09 on 23849 degrees of freedom
+Multiple R-squared:  0.05029,   Adjusted R-squared:  0.04985 
+F-statistic: 114.8 on 11 and 23849 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<p>If you participated in the workshop, you may remember that the results of the first method of estimating interactions (in which you manually create an interaction term by multiplying the interacting variables) did not completely match those of the two subsequent methods. To understand what error I made and how this affected the results, read the postscriptum at the bottom of this post.</p>
+</section>
+<section id="standardized-estimates" class="level2">
+<h2 class="anchored" data-anchor-id="standardized-estimates">Standardized estimates</h2>
+<p>In some situations you would like to have standardized estimates, i.e., estimates after the dependent and all independent variables have been normalized to have mean 0 and standard deviation of 1.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb33"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb33-1"><a href="#cb33-1" aria-hidden="true" tabindex="-1"></a>spotify_songs_clean_NA_std <span class="ot">&lt;-</span></span>
+<span id="cb33-2"><a href="#cb33-2" aria-hidden="true" tabindex="-1"></a>  spotify_songs_clean_NA <span class="sc">|&gt;</span></span>
+<span id="cb33-3"><a href="#cb33-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="at">.cols =</span> <span class="fu">c</span>(track_popularity,</span>
+<span id="cb33-4"><a href="#cb33-4" aria-hidden="true" tabindex="-1"></a>                         danceability,</span>
+<span id="cb33-5"><a href="#cb33-5" aria-hidden="true" tabindex="-1"></a>                         energy,</span>
+<span id="cb33-6"><a href="#cb33-6" aria-hidden="true" tabindex="-1"></a>                         loudness,</span>
+<span id="cb33-7"><a href="#cb33-7" aria-hidden="true" tabindex="-1"></a>                         speechiness,</span>
+<span id="cb33-8"><a href="#cb33-8" aria-hidden="true" tabindex="-1"></a>                         acousticness,</span>
+<span id="cb33-9"><a href="#cb33-9" aria-hidden="true" tabindex="-1"></a>                         instrumentalness,</span>
+<span id="cb33-10"><a href="#cb33-10" aria-hidden="true" tabindex="-1"></a>                         liveness,</span>
+<span id="cb33-11"><a href="#cb33-11" aria-hidden="true" tabindex="-1"></a>                         valence,</span>
+<span id="cb33-12"><a href="#cb33-12" aria-hidden="true" tabindex="-1"></a>                         tempo,</span>
+<span id="cb33-13"><a href="#cb33-13" aria-hidden="true" tabindex="-1"></a>                         duration_ms),</span>
+<span id="cb33-14"><a href="#cb33-14" aria-hidden="true" tabindex="-1"></a>                <span class="at">.fns =</span> <span class="sc">~</span> (.x <span class="sc">-</span> <span class="fu">mean</span>(.x)) <span class="sc">/</span> <span class="fu">sd</span>(.x) ))</span>
+<span id="cb33-15"><a href="#cb33-15" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb33-16"><a href="#cb33-16" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> danceability <span class="sc">+</span> energy <span class="sc">+</span> loudness <span class="sc">+</span></span>
+<span id="cb33-17"><a href="#cb33-17" aria-hidden="true" tabindex="-1"></a>       speechiness <span class="sc">+</span> acousticness <span class="sc">+</span> instrumentalness <span class="sc">+</span> liveness <span class="sc">+</span></span>
+<span id="cb33-18"><a href="#cb33-18" aria-hidden="true" tabindex="-1"></a>       valence <span class="sc">+</span> tempo <span class="sc">+</span> duration_ms, </span>
+<span id="cb33-19"><a href="#cb33-19" aria-hidden="true" tabindex="-1"></a>     <span class="at">data =</span> spotify_songs_clean_NA_std)  <span class="sc">|&gt;</span></span>
+<span id="cb33-20"><a href="#cb33-20" aria-hidden="true" tabindex="-1"></a>    <span class="fu">summary</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = track_popularity ~ danceability + energy + loudness + 
+    speechiness + acousticness + instrumentalness + liveness + 
+    valence + tempo + duration_ms, data = spotify_songs_clean_NA_std)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-2.62063 -0.63991  0.09081  0.74146  2.75458 
+
+Coefficients:
+                   Estimate Std. Error t value Pr(&gt;|t|)    
+(Intercept)      -8.563e-17  6.312e-03   0.000  1.00000    
+danceability      1.038e-02  7.199e-03   1.442  0.14926    
+energy           -1.811e-01  1.040e-02 -17.420  &lt; 2e-16 ***
+loudness          1.594e-01  9.239e-03  17.250  &lt; 2e-16 ***
+speechiness      -1.922e-02  6.531e-03  -2.943  0.00326 ** 
+acousticness      2.927e-02  7.721e-03   3.791  0.00015 ***
+instrumentalness -1.009e-01  6.720e-03 -15.021  &lt; 2e-16 ***
+liveness         -1.303e-02  6.476e-03  -2.012  0.04419 *  
+valence           4.076e-02  7.097e-03   5.743 9.42e-09 ***
+tempo             3.089e-02  6.511e-03   4.745 2.10e-06 ***
+duration_ms      -7.738e-02  6.472e-03 -11.955  &lt; 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.975 on 23850 degrees of freedom
+Multiple R-squared:  0.0497,    Adjusted R-squared:  0.0493 
+F-statistic: 124.7 on 10 and 23850 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+<p>There is also a function <code>lm.beta</code> (contained in the package with the same name, <code>lmbeta</code>) that will do this for you. This saves you from standardizing the variables yourself.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb35"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb35-1"><a href="#cb35-1" aria-hidden="true" tabindex="-1"></a><span class="co">#install.packages("lm.beta")</span></span>
+<span id="cb35-2"><a href="#cb35-2" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(lm.beta)</span>
+<span id="cb35-3"><a href="#cb35-3" aria-hidden="true" tabindex="-1"></a></span>
+<span id="cb35-4"><a href="#cb35-4" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> danceability <span class="sc">+</span> energy <span class="sc">+</span> loudness <span class="sc">+</span></span>
+<span id="cb35-5"><a href="#cb35-5" aria-hidden="true" tabindex="-1"></a>       speechiness <span class="sc">+</span> acousticness <span class="sc">+</span> instrumentalness <span class="sc">+</span> liveness <span class="sc">+</span></span>
+<span id="cb35-6"><a href="#cb35-6" aria-hidden="true" tabindex="-1"></a>       valence <span class="sc">+</span> tempo <span class="sc">+</span> duration_ms, </span>
+<span id="cb35-7"><a href="#cb35-7" aria-hidden="true" tabindex="-1"></a>     <span class="at">data =</span> spotify_songs_clean_NA_std) <span class="sc">|&gt;</span></span>
+<span id="cb35-8"><a href="#cb35-8" aria-hidden="true" tabindex="-1"></a>     <span class="fu">lm.beta</span>() <span class="sc">|&gt;</span></span>
+<span id="cb35-9"><a href="#cb35-9" aria-hidden="true" tabindex="-1"></a>     <span class="fu">summary</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = track_popularity ~ danceability + energy + loudness + 
+    speechiness + acousticness + instrumentalness + liveness + 
+    valence + tempo + duration_ms, data = spotify_songs_clean_NA_std)
+
+Residuals:
+     Min       1Q   Median       3Q      Max 
+-2.62063 -0.63991  0.09081  0.74146  2.75458 
+
+Coefficients:
+                   Estimate Standardized Std. Error t value Pr(&gt;|t|)    
+(Intercept)      -8.563e-17           NA  6.312e-03   0.000  1.00000    
+danceability      1.038e-02    1.038e-02  7.199e-03   1.442  0.14926    
+energy           -1.811e-01   -1.811e-01  1.040e-02 -17.420  &lt; 2e-16 ***
+loudness          1.594e-01    1.594e-01  9.239e-03  17.250  &lt; 2e-16 ***
+speechiness      -1.922e-02   -1.922e-02  6.531e-03  -2.943  0.00326 ** 
+acousticness      2.927e-02    2.927e-02  7.721e-03   3.791  0.00015 ***
+instrumentalness -1.009e-01   -1.009e-01  6.720e-03 -15.021  &lt; 2e-16 ***
+liveness         -1.303e-02   -1.303e-02  6.476e-03  -2.012  0.04419 *  
+valence           4.076e-02    4.076e-02  7.097e-03   5.743 9.42e-09 ***
+tempo             3.089e-02    3.089e-02  6.511e-03   4.745 2.10e-06 ***
+duration_ms      -7.738e-02   -7.738e-02  6.472e-03 -11.955  &lt; 2e-16 ***
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+Residual standard error: 0.975 on 23850 degrees of freedom
+Multiple R-squared:  0.0497,    Adjusted R-squared:  0.0493 
+F-statistic: 124.7 on 10 and 23850 DF,  p-value: &lt; 2.2e-16</code></pre>
+</div>
+</div>
+</section>
+<section id="tidy-workflow-the-functions-tidy-glance-and-augment" class="level2">
+<h2 class="anchored" data-anchor-id="tidy-workflow-the-functions-tidy-glance-and-augment">Tidy workflow: the functions <code>tidy</code>, <code>glance</code> and <code>augment</code></h2>
+<p>To make the results of an analysis reproducible, it should be forbidden to copy and paste results from the R Studio console to somewhere else (Excel, Word, or any other software)!</p>
+<p>But then how can the results of a regression analysis be stored in a reproducible way?</p>
+<p>The three main functions of the package <code>broom</code> help us to maintain a tidy workflow by converting the results of regression models, unlike the <code>summary</code> function, to plain <code>tibbles</code> (<code>dataframes</code>).</p>
+<ol type="1">
+<li><code>tidy</code> is for the coefficients of you model. It returns a dataframe with as many rows as there are independent variables in the model, and includes the estimate, its standard error, the associated test statistics and p-values for each of them.</li>
+<li>`glance’ is for the overall model statistics, such as <span class="math inline">\(R^2\)</span>, and contains only a single row.</li>
+<li><code>augment</code> is for residuals and predictions, and contains as many rows as there are observations in your data. I will not discuss <code>augment</code> here.</li>
+</ol>
+<p>Let us see how <code>tidy</code> works.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb37"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb37-1"><a href="#cb37-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
+<span id="cb37-2"><a href="#cb37-2" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> danceability <span class="sc">+</span> energy <span class="sc">+</span> </span>
+<span id="cb37-3"><a href="#cb37-3" aria-hidden="true" tabindex="-1"></a>   loudness <span class="sc">+</span> speechiness <span class="sc">+</span> acousticness <span class="sc">+</span> instrumentalness <span class="sc">+</span> liveness <span class="sc">+</span> valence <span class="sc">+</span> tempo <span class="sc">+</span> duration_ms, </span>
+<span id="cb37-4"><a href="#cb37-4" aria-hidden="true" tabindex="-1"></a>   <span class="at">data =</span> spotify_songs_clean_NA) <span class="sc">|&gt;</span></span>
+<span id="cb37-5"><a href="#cb37-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lm.beta</span>() <span class="sc">|&gt;</span></span>
+<span id="cb37-6"><a href="#cb37-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">conf.int =</span> <span class="cn">TRUE</span>, <span class="at">conf.level =</span> <span class="fl">0.99</span>) </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 11 × 8
+   term    estimate std_estimate std.error statistic  p.value conf.low conf.high
+   &lt;chr&gt;      &lt;dbl&gt;        &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
+ 1 (Inter…  6.61e+1      NA        1.59e+0     41.5  0        NA         NA     
+ 2 dancea…  1.47e+0       0.0104   1.02e+0      1.44 1.49e- 1 -2.62       2.64  
+ 3 energy  -2.02e+1      -0.181    1.16e+0    -17.4  1.53e-67 -3.16       2.80  
+ 4 loudne…  1.08e+0       0.159    6.25e-2     17.2  2.83e-66 -0.00170    0.320 
+ 5 speech… -3.84e+0      -0.0192   1.31e+0     -2.94 3.26e- 3 -3.38       3.34  
+ 6 acoust…  2.64e+0       0.0293   6.97e-1      3.79 1.50e- 4 -1.77       1.82  
+ 7 instru… -8.87e+0      -0.101    5.90e-1    -15.0  9.11e-51 -1.62       1.42  
+ 8 livene… -1.75e+0      -0.0130   8.71e-1     -2.01 4.42e- 2 -2.26       2.23  
+ 9 valence  3.59e+0       0.0408   6.26e-1      5.74 9.42e- 9 -1.57       1.65  
+10 tempo    2.35e-2       0.0309   4.95e-3      4.74 2.10e- 6  0.0181     0.0437
+11 durati… -2.65e-5      -0.0774   2.22e-6    -12.0  7.59e-33 -0.0774    -0.0774</code></pre>
+</div>
+</div>
+<p>One advantage is that I can now store these results on disk, possibly after transforming them. Here I will round all numeric variables to 3 decimal digits and save it the file “full_model_estimates.csv”.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb39"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb39-1"><a href="#cb39-1" aria-hidden="true" tabindex="-1"></a><span class="fu">library</span>(broom)</span>
+<span id="cb39-2"><a href="#cb39-2" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> danceability <span class="sc">+</span> energy <span class="sc">+</span> </span>
+<span id="cb39-3"><a href="#cb39-3" aria-hidden="true" tabindex="-1"></a>   loudness <span class="sc">+</span> speechiness <span class="sc">+</span> acousticness <span class="sc">+</span> instrumentalness <span class="sc">+</span> liveness <span class="sc">+</span> valence <span class="sc">+</span> tempo <span class="sc">+</span> duration_ms, </span>
+<span id="cb39-4"><a href="#cb39-4" aria-hidden="true" tabindex="-1"></a>   <span class="at">data =</span> spotify_songs_clean_NA) <span class="sc">|&gt;</span></span>
+<span id="cb39-5"><a href="#cb39-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lm.beta</span>() <span class="sc">|&gt;</span></span>
+<span id="cb39-6"><a href="#cb39-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">conf.int =</span> <span class="cn">TRUE</span>, <span class="at">conf.level =</span> <span class="fl">0.99</span>) <span class="sc">|&gt;</span></span>
+<span id="cb39-7"><a href="#cb39-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="fu">across</span>(<span class="sc">!</span>term, <span class="sc">~</span> <span class="fu">round</span>(.x, <span class="at">digits =</span> <span class="dv">3</span>))) <span class="sc">|&gt;</span></span>
+<span id="cb39-8"><a href="#cb39-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write_csv</span>(<span class="st">"full_model_estimates.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>The functions in <code>broom</code> not only assist it generating reproducible results, they also help streamline workflows. For example, we might want to visualize our standardized regression coefficients.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb40"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb40-1"><a href="#cb40-1" aria-hidden="true" tabindex="-1"></a>  <span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> danceability <span class="sc">+</span> energy <span class="sc">+</span> loudness <span class="sc">+</span></span>
+<span id="cb40-2"><a href="#cb40-2" aria-hidden="true" tabindex="-1"></a>       speechiness <span class="sc">+</span> acousticness <span class="sc">+</span> instrumentalness <span class="sc">+</span> liveness <span class="sc">+</span></span>
+<span id="cb40-3"><a href="#cb40-3" aria-hidden="true" tabindex="-1"></a>       valence <span class="sc">+</span> tempo <span class="sc">+</span> duration_ms, </span>
+<span id="cb40-4"><a href="#cb40-4" aria-hidden="true" tabindex="-1"></a>     <span class="at">data =</span> spotify_songs_clean_NA_std) <span class="sc">|&gt;</span></span>
+<span id="cb40-5"><a href="#cb40-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">conf.int =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb40-6"><a href="#cb40-6" aria-hidden="true" tabindex="-1"></a>       <span class="at">conf.level =</span> <span class="fl">0.99</span>) <span class="sc">|&gt;</span></span>
+<span id="cb40-7"><a href="#cb40-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(term <span class="sc">!=</span> <span class="st">"(Intercept)"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb40-8"><a href="#cb40-8" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb40-9"><a href="#cb40-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> term, </span>
+<span id="cb40-10"><a href="#cb40-10" aria-hidden="true" tabindex="-1"></a>                 <span class="at">x =</span> estimate)) <span class="sc">+</span></span>
+<span id="cb40-11"><a href="#cb40-11" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbarh</span>(<span class="fu">aes</span>(<span class="at">y =</span> term, </span>
+<span id="cb40-12"><a href="#cb40-12" aria-hidden="true" tabindex="-1"></a>                     <span class="at">xmin =</span> conf.low,</span>
+<span id="cb40-13"><a href="#cb40-13" aria-hidden="true" tabindex="-1"></a>                     <span class="at">xmax =</span> conf.high)) <span class="sc">+</span></span>
+<span id="cb40-14"><a href="#cb40-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="fu">aes</span>(<span class="at">xintercept =</span> <span class="dv">0</span>), </span>
+<span id="cb40-15"><a href="#cb40-15" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"red"</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="regression_spotify_files/figure-html/unnamed-chunk-25-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>Let us see whether we can predict whether a song in in major or minor mode from its other characteristics. I will first display the frequency distribution.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb41"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb41-1"><a href="#cb41-1" aria-hidden="true" tabindex="-1"></a><span class="co"># What is the distribution of mode (major = 1, minor = 0)</span></span>
+<span id="cb41-2"><a href="#cb41-2" aria-hidden="true" tabindex="-1"></a>spotify_songs <span class="sc">|&gt;</span> <span class="fu">count</span>(mode)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 2 × 2
+   mode     n
+  &lt;dbl&gt; &lt;int&gt;
+1     0 14259
+2     1 18574</code></pre>
+</div>
+</div>
+<p>Because mode is a binary 0/1 dummy variable I can analyze it with the logit model. The logit (also referred to as ‘logistic’) model is one a a series of generalized linear models that can be estimated with the <code>glm</code> function. Like <code>lm</code>, the <code>glm</code> takes a <code>formula</code> and a <code>data</code> argument. In addition, you also need to specific the logit model explicitly.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb43"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb43-1"><a href="#cb43-1" aria-hidden="true" tabindex="-1"></a>glm_model_mode <span class="ot">&lt;-</span></span>
+<span id="cb43-2"><a href="#cb43-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">glm</span>(<span class="at">formula =</span> mode_fct <span class="sc">~</span> energy <span class="sc">+</span> loudness <span class="sc">+</span></span>
+<span id="cb43-3"><a href="#cb43-3" aria-hidden="true" tabindex="-1"></a>             speechiness <span class="sc">+</span> acousticness <span class="sc">+</span> </span>
+<span id="cb43-4"><a href="#cb43-4" aria-hidden="true" tabindex="-1"></a>             instrumentalness <span class="sc">+</span> liveness <span class="sc">+</span></span>
+<span id="cb43-5"><a href="#cb43-5" aria-hidden="true" tabindex="-1"></a>             valence <span class="sc">+</span> tempo <span class="sc">+</span> duration_ms, </span>
+<span id="cb43-6"><a href="#cb43-6" aria-hidden="true" tabindex="-1"></a>           <span class="at">data =</span> spotify_songs_clean_NA_std,</span>
+<span id="cb43-7"><a href="#cb43-7" aria-hidden="true" tabindex="-1"></a>           <span class="at">family =</span> <span class="fu">binomial</span>(<span class="at">link =</span> <span class="st">"logit"</span>))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb44"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb44-1"><a href="#cb44-1" aria-hidden="true" tabindex="-1"></a>glm_model_mode <span class="sc">|&gt;</span> <span class="fu">summary</span>()</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+glm(formula = mode_fct ~ energy + loudness + speechiness + acousticness + 
+    instrumentalness + liveness + valence + tempo + duration_ms, 
+    family = binomial(link = "logit"), data = spotify_songs_clean_NA_std)
+
+Deviance Residuals: 
+   Min      1Q  Median      3Q     Max  
+-1.603  -1.289   1.013   1.061   1.455  
+
+Coefficients:
+                  Estimate Std. Error z value Pr(&gt;|z|)    
+(Intercept)       0.260631   0.013087  19.916  &lt; 2e-16 ***
+energy            0.018796   0.021150   0.889  0.37417    
+loudness         -0.053538   0.019100  -2.803  0.00506 ** 
+speechiness      -0.118212   0.013240  -8.928  &lt; 2e-16 ***
+acousticness      0.017590   0.015861   1.109  0.26742    
+instrumentalness -0.036847   0.013793  -2.671  0.00755 ** 
+liveness          0.011393   0.013361   0.853  0.39383    
+valence          -0.005552   0.013654  -0.407  0.68426    
+tempo             0.040659   0.013287   3.060  0.00221 ** 
+duration_ms       0.012419   0.013404   0.927  0.35416    
+---
+Signif. codes:  0 '***' 0.001 '**' 0.01 '*' 0.05 '.' 0.1 ' ' 1
+
+(Dispersion parameter for binomial family taken to be 1)
+
+    Null deviance: 32679  on 23860  degrees of freedom
+Residual deviance: 32575  on 23851  degrees of freedom
+AIC: 32595
+
+Number of Fisher Scoring iterations: 4</code></pre>
+</div>
+</div>
+<p>I use <code>tidy</code> again to create a data frame with estimates, standard errors, etc.. The <code>exponentiate</code> argument adds odds ratios, and the <code>conf.int</code> and <code>conf.level</code> arguments add 95% confidence intervals. Note that I print the result on screen and also store it on disk.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb46"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb46-1"><a href="#cb46-1" aria-hidden="true" tabindex="-1"></a>glm_model_mode <span class="sc">|&gt;</span> </span>
+<span id="cb46-2"><a href="#cb46-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb46-3"><a href="#cb46-3" aria-hidden="true" tabindex="-1"></a>       <span class="at">conf.int =</span> <span class="cn">TRUE</span>, </span>
+<span id="cb46-4"><a href="#cb46-4" aria-hidden="true" tabindex="-1"></a>       <span class="at">conf.level =</span> .<span class="dv">95</span>) <span class="sc">|&gt;</span></span>
+<span id="cb46-5"><a href="#cb46-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>() <span class="sc">|&gt;</span></span>
+<span id="cb46-6"><a href="#cb46-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write_csv</span>(<span class="st">"glm_logit_estimates.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 10 × 7
+   term             estimate std.error statistic  p.value conf.low conf.high
+   &lt;chr&gt;               &lt;dbl&gt;     &lt;dbl&gt;     &lt;dbl&gt;    &lt;dbl&gt;    &lt;dbl&gt;     &lt;dbl&gt;
+ 1 (Intercept)         1.30     0.0131    19.9   2.96e-88    1.26      1.33 
+ 2 energy              1.02     0.0212     0.889 3.74e- 1    0.978     1.06 
+ 3 loudness            0.948    0.0191    -2.80  5.06e- 3    0.913     0.984
+ 4 speechiness         0.889    0.0132    -8.93  4.32e-19    0.866     0.912
+ 5 acousticness        1.02     0.0159     1.11  2.67e- 1    0.987     1.05 
+ 6 instrumentalness    0.964    0.0138    -2.67  7.55e- 3    0.938     0.990
+ 7 liveness            1.01     0.0134     0.853 3.94e- 1    0.985     1.04 
+ 8 valence             0.994    0.0137    -0.407 6.84e- 1    0.968     1.02 
+ 9 tempo               1.04     0.0133     3.06  2.21e- 3    1.01      1.07 
+10 duration_ms         1.01     0.0134     0.927 3.54e- 1    0.986     1.04 </code></pre>
+</div>
+</div>
+<p>For reproducibility I also store the overall model statistics (AIC, BIC, etc. on disk.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb48"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb48-1"><a href="#cb48-1" aria-hidden="true" tabindex="-1"></a>glm_model_mode <span class="sc">|&gt;</span></span>
+<span id="cb48-2"><a href="#cb48-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">glance</span>() <span class="sc">|&gt;</span> </span>
+<span id="cb48-3"><a href="#cb48-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">print</span>() <span class="sc">|&gt;</span></span>
+<span id="cb48-4"><a href="#cb48-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">write_csv</span>(<span class="st">"glm_logit_statistics.csv"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 1 × 8
+  null.deviance df.null  logLik    AIC    BIC deviance df.residual  nobs
+          &lt;dbl&gt;   &lt;int&gt;   &lt;dbl&gt;  &lt;dbl&gt;  &lt;dbl&gt;    &lt;dbl&gt;       &lt;int&gt; &lt;int&gt;
+1        32679.   23860 -16288. 32595. 32676.   32575.       23851 23861</code></pre>
+</div>
+</div>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb50"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb50-1"><a href="#cb50-1" aria-hidden="true" tabindex="-1"></a>glm_model_mode <span class="sc">|&gt;</span> </span>
+<span id="cb50-2"><a href="#cb50-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb50-3"><a href="#cb50-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(term <span class="sc">!=</span> <span class="st">"(Intercept)"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb50-4"><a href="#cb50-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb50-5"><a href="#cb50-5" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> term, </span>
+<span id="cb50-6"><a href="#cb50-6" aria-hidden="true" tabindex="-1"></a>                 <span class="at">x =</span> estimate)) <span class="sc">+</span></span>
+<span id="cb50-7"><a href="#cb50-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbarh</span>(<span class="fu">aes</span>(<span class="at">y =</span> term, </span>
+<span id="cb50-8"><a href="#cb50-8" aria-hidden="true" tabindex="-1"></a>                     <span class="at">xmin =</span> conf.low,</span>
+<span id="cb50-9"><a href="#cb50-9" aria-hidden="true" tabindex="-1"></a>                     <span class="at">xmax =</span> conf.high)) <span class="sc">+</span></span>
+<span id="cb50-10"><a href="#cb50-10" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="fu">aes</span>(<span class="at">xintercept =</span> <span class="dv">1</span>), </span>
+<span id="cb50-11"><a href="#cb50-11" aria-hidden="true" tabindex="-1"></a>             <span class="at">color =</span> <span class="st">"red"</span>)  </span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="regression_spotify_files/figure-html/unnamed-chunk-31-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+<p>This looks nice, but there are two things I want to improve. First, in the visualization the order of the terms on the vertical axis is alphabetic, whereas I would like to keep the original order in which I entered the terms in the equation. Second, I would like the title of the vertical axis to become “Song feature” and the title of the horizontal axis to be “Odds ratio”. Here we go:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb51"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb51-1"><a href="#cb51-1" aria-hidden="true" tabindex="-1"></a>glm_model_mode <span class="sc">|&gt;</span> </span>
+<span id="cb51-2"><a href="#cb51-2" aria-hidden="true" tabindex="-1"></a>  <span class="fu">tidy</span>(<span class="at">exponentiate =</span> <span class="cn">TRUE</span>, <span class="at">conf.int =</span> <span class="cn">TRUE</span>) <span class="sc">|&gt;</span> </span>
+<span id="cb51-3"><a href="#cb51-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">filter</span>(term <span class="sc">!=</span> <span class="st">"(Intercept)"</span>) <span class="sc">|&gt;</span></span>
+<span id="cb51-4"><a href="#cb51-4" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">term =</span> <span class="fu">factor</span>(term, </span>
+<span id="cb51-5"><a href="#cb51-5" aria-hidden="true" tabindex="-1"></a>                       <span class="at">levels =</span> term)) <span class="sc">|&gt;</span></span>
+<span id="cb51-6"><a href="#cb51-6" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ggplot</span>() <span class="sc">+</span> </span>
+<span id="cb51-7"><a href="#cb51-7" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_point</span>(<span class="fu">aes</span>(<span class="at">y =</span> term, </span>
+<span id="cb51-8"><a href="#cb51-8" aria-hidden="true" tabindex="-1"></a>                 <span class="at">x =</span> estimate)) <span class="sc">+</span></span>
+<span id="cb51-9"><a href="#cb51-9" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_errorbarh</span>(<span class="fu">aes</span>(<span class="at">y =</span> term, </span>
+<span id="cb51-10"><a href="#cb51-10" aria-hidden="true" tabindex="-1"></a>                     <span class="at">xmin =</span> conf.low,</span>
+<span id="cb51-11"><a href="#cb51-11" aria-hidden="true" tabindex="-1"></a>                     <span class="at">xmax =</span> conf.high)) <span class="sc">+</span></span>
+<span id="cb51-12"><a href="#cb51-12" aria-hidden="true" tabindex="-1"></a>  <span class="fu">geom_vline</span>(<span class="fu">aes</span>(<span class="at">xintercept =</span> <span class="dv">1</span>), <span class="at">color =</span> <span class="st">"red"</span>) <span class="sc">+</span></span>
+<span id="cb51-13"><a href="#cb51-13" aria-hidden="true" tabindex="-1"></a>  <span class="fu">xlab</span>(<span class="st">"Odds ratio"</span>) <span class="sc">+</span></span>
+<span id="cb51-14"><a href="#cb51-14" aria-hidden="true" tabindex="-1"></a>  <span class="fu">ylab</span>(<span class="st">"Song feature"</span>)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output-display">
+<p><img src="regression_spotify_files/figure-html/unnamed-chunk-32-1.png" class="img-fluid" width="672"></p>
+</div>
+</div>
+</section>
+<section id="wrapping-up" class="level2">
+<h2 class="anchored" data-anchor-id="wrapping-up">Wrapping up</h2>
+<p>That’s it for this workshop. Thanks for reading the materials. I hope you found them instructive. If you have any comments, suggestions or questions, please drop me a message at <code>wbernasco@nscr.nl</code>.</p>
+</section>
+<section id="postscriptum" class="level2">
+<h2 class="anchored" data-anchor-id="postscriptum">Postscriptum</h2>
+<p>During the workshop I made a mistake that created confusion that I could not immediately resolve. In this postscription I explain what happened and how the resulting anomaly can be explained. It might also be instructive if you did not attend the workshop session. Here is what happened. I created an interaction as follows.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb52"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb52-1"><a href="#cb52-1" aria-hidden="true" tabindex="-1"></a>spotify_songs_clean_NA_Plus <span class="ot">&lt;-</span></span>
+<span id="cb52-2"><a href="#cb52-2" aria-hidden="true" tabindex="-1"></a>  spotify_songs_clean_NA<span class="sc">|&gt;</span></span>
+<span id="cb52-3"><a href="#cb52-3" aria-hidden="true" tabindex="-1"></a>  <span class="fu">mutate</span>(<span class="at">danceability_x_mode =</span> danceability <span class="sc">*</span> <span class="fu">as.numeric</span>(mode_fct))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+</div>
+<p>and subsequently included the new variable in a regression model.</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb53"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb53-1"><a href="#cb53-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> mode <span class="sc">+</span> danceability <span class="sc">+</span> </span>
+<span id="cb53-2"><a href="#cb53-2" aria-hidden="true" tabindex="-1"></a>     danceability_x_mode,</span>
+<span id="cb53-3"><a href="#cb53-3" aria-hidden="true" tabindex="-1"></a>   <span class="at">data    =</span> spotify_songs_clean_NA_Plus)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = track_popularity ~ mode + danceability + danceability_x_mode, 
+    data = spotify_songs_clean_NA_Plus)
+
+Coefficients:
+        (Intercept)                 mode         danceability  
+             37.258                4.142               13.138  
+danceability_x_mode  
+             -4.676  </code></pre>
+</div>
+</div>
+<p>However, when I specified the regression equation directly without first creating the multiplicative interaction term, the results were different:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb55"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb55-1"><a href="#cb55-1" aria-hidden="true" tabindex="-1"></a><span class="fu">lm</span>(<span class="at">formula =</span> track_popularity <span class="sc">~</span> mode_fct <span class="sc">*</span> danceability,</span>
+<span id="cb55-2"><a href="#cb55-2" aria-hidden="true" tabindex="-1"></a>   <span class="at">data    =</span> spotify_songs_clean_NA)</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code>
+Call:
+lm(formula = track_popularity ~ mode_fct * danceability, data = spotify_songs_clean_NA)
+
+Coefficients:
+               (Intercept)               mode_fctmajor  
+                    37.258                       4.142  
+              danceability  mode_fctmajor:danceability  
+                     8.462                      -4.676  </code></pre>
+</div>
+</div>
+<p>In the first model, the estimate of <code>danceability</code> was 13.138, but in the second model is was 8.462. As I will explain below, it is not a coincidence that the difference, 8.462 - 13.138, equals -4.676, the value of the interaction term. But what happened?</p>
+<p>When I used the <code>mutate</code> function I thought that <code>as.numeric(mode_fct)</code> was creating a dummy variable with <code>minor</code> coded as 0 and <code>major</code> coded as 1. But I was wrong. It created a binary variable with <code>minor</code> coded as 1 and <code>major</code> coded as 2. To see this behavior in action, see the following little example:</p>
+<div class="cell">
+<div class="sourceCode cell-code" id="cb57"><pre class="sourceCode r code-with-copy"><code class="sourceCode r"><span id="cb57-1"><a href="#cb57-1" aria-hidden="true" tabindex="-1"></a><span class="fu">tibble</span>(<span class="at">var =</span> <span class="fu">c</span>(<span class="dv">0</span>,<span class="dv">1</span>,<span class="dv">0</span>,<span class="dv">0</span>,<span class="dv">1</span>)) <span class="sc">|&gt;</span></span>
+<span id="cb57-2"><a href="#cb57-2" aria-hidden="true" tabindex="-1"></a><span class="fu">mutate</span>(<span class="at">var_fct =</span> <span class="fu">factor</span>(var,</span>
+<span id="cb57-3"><a href="#cb57-3" aria-hidden="true" tabindex="-1"></a>                        <span class="at">levels =</span> <span class="dv">0</span><span class="sc">:</span><span class="dv">1</span>,</span>
+<span id="cb57-4"><a href="#cb57-4" aria-hidden="true" tabindex="-1"></a>                        <span class="at">labels =</span> <span class="fu">c</span>(<span class="st">"minor"</span>, <span class="st">"major"</span>)),</span>
+<span id="cb57-5"><a href="#cb57-5" aria-hidden="true" tabindex="-1"></a>       <span class="at">var_fct_num =</span> <span class="fu">as.numeric</span>(var_fct))</span></code><button title="Copy to Clipboard" class="code-copy-button"><i class="bi"></i></button></pre></div>
+<div class="cell-output cell-output-stdout">
+<pre><code># A tibble: 5 × 3
+    var var_fct var_fct_num
+  &lt;dbl&gt; &lt;fct&gt;         &lt;dbl&gt;
+1     0 minor             1
+2     1 major             2
+3     0 minor             1
+4     0 minor             1
+5     1 major             2</code></pre>
+</div>
+</div>
+<p>As you can see, the column <code>var_fct_num</code> does not contain 0 and 1, but 1 and 2. This is also what happened when I created the interaction term <code>danceability_x_mode</code> with the <code>mutate</code> function, using the <code>as.numeric(mode_fct)</code> phrase. Thus, I unwillingly multiplied <code>danceability</code> by 1 instead of 0, and by 1 instead of 2. In the main materials above (where I corrected the mistake made in te workshop), I did not use <code>as.mumeric(mode_fct)</code> but just <code>mode</code> (the numeric variable coded 0 and 1).</p>
+<p>Let’s explain the outcomes using some math. The model I intended to estimate on all occasions was this one, with <code>mode_fct</code> coded as 0 and 1.</p>
+<p><span class="math display">\[ track\_popularity = \beta_{0} + \beta_{1} \times danceability +
+                    \beta_{2} \times mode\_fct +
+                    \beta_{3} \times danceability \times mode\_fct\]</span></p>
+<p>However, because of my mistake I estimated another model in which the second <code>mode_fct</code> was coded as 1 and 2. To recover the intended model, I should replace the second <code>mode_fct</code> in the equation with <code>mode_fct - 1</code> we get:</p>
+<p><span class="math display">\[track\_popularity = \beta_{0} +
+                        \beta_{1} \times danceability +
+                        \beta_{2} \times mode\_fct +
+                        \beta_{3} \times danceability \times (mode\_fct - 1))\]</span></p>
+<p>After rearranging terms, we get</p>
+<p><span class="math display">\[ track\_popularity = \beta_{0} + \beta_{1} \times danceability +
+                    \beta_{2} \times mode  +
+                    \beta_{3} \times danceability \times mode\_fct - \beta_{3} \times danceability\]</span></p>
+<p>which can be simplified to</p>
+<p><span class="math display">\[ track\_popularity = \beta_{0} + (\beta_{1} - \beta_{3}) \times danceability +
+                    \beta_{2} \times mode  +
+                    \beta_{3} \times danceability \times mode\_fct  \]</span></p>
+<p>Thus, the intended estimate of <code>danceability</code> was <span class="math inline">\(\beta_{1} - \beta_{3} = 8.462 + 4.676 = 13.138\)</span>.</p>
+<p>While investigating the issue, I stumbled upon and used a function <code>model.matrix</code>. This function takes as argument an estimated model, and shows how all variables in the equation, including the dummy variables automatically created from factors, are numerically coded.</p>
+</section>
+
+</main>
+<!-- /main column -->
+<script id="quarto-html-after-body" type="application/javascript">
+window.document.addEventListener("DOMContentLoaded", function (event) {
+  const toggleBodyColorMode = (bsSheetEl) => {
+    const mode = bsSheetEl.getAttribute("data-mode");
+    const bodyEl = window.document.querySelector("body");
+    if (mode === "dark") {
+      bodyEl.classList.add("quarto-dark");
+      bodyEl.classList.remove("quarto-light");
+    } else {
+      bodyEl.classList.add("quarto-light");
+      bodyEl.classList.remove("quarto-dark");
+    }
+  }
+  const toggleBodyColorPrimary = () => {
+    const bsSheetEl = window.document.querySelector("link#quarto-bootstrap");
+    if (bsSheetEl) {
+      toggleBodyColorMode(bsSheetEl);
+    }
+  }
+  toggleBodyColorPrimary();  
+  const icon = "";
+  const anchorJS = new window.AnchorJS();
+  anchorJS.options = {
+    placement: 'right',
+    icon: icon
+  };
+  anchorJS.add('.anchored');
+  const clipboard = new window.ClipboardJS('.code-copy-button', {
+    target: function(trigger) {
+      return trigger.previousElementSibling;
+    }
+  });
+  clipboard.on('success', function(e) {
+    // button target
+    const button = e.trigger;
+    // don't keep focus
+    button.blur();
+    // flash "checked"
+    button.classList.add('code-copy-button-checked');
+    var currentTitle = button.getAttribute("title");
+    button.setAttribute("title", "Copied!");
+    let tooltip;
+    if (window.bootstrap) {
+      button.setAttribute("data-bs-toggle", "tooltip");
+      button.setAttribute("data-bs-placement", "left");
+      button.setAttribute("data-bs-title", "Copied!");
+      tooltip = new bootstrap.Tooltip(button, 
+        { trigger: "manual", 
+          customClass: "code-copy-button-tooltip",
+          offset: [0, -8]});
+      tooltip.show();    
+    }
+    setTimeout(function() {
+      if (tooltip) {
+        tooltip.hide();
+        button.removeAttribute("data-bs-title");
+        button.removeAttribute("data-bs-toggle");
+        button.removeAttribute("data-bs-placement");
+      }
+      button.setAttribute("title", currentTitle);
+      button.classList.remove('code-copy-button-checked');
+    }, 1000);
+    // clear code selection
+    e.clearSelection();
+  });
+  function tippyHover(el, contentFn) {
+    const config = {
+      allowHTML: true,
+      content: contentFn,
+      maxWidth: 500,
+      delay: 100,
+      arrow: false,
+      appendTo: function(el) {
+          return el.parentElement;
+      },
+      interactive: true,
+      interactiveBorder: 10,
+      theme: 'quarto',
+      placement: 'bottom-start'
+    };
+    window.tippy(el, config); 
+  }
+  const noterefs = window.document.querySelectorAll('a[role="doc-noteref"]');
+  for (var i=0; i<noterefs.length; i++) {
+    const ref = noterefs[i];
+    tippyHover(ref, function() {
+      // use id or data attribute instead here
+      let href = ref.getAttribute('data-footnote-href') || ref.getAttribute('href');
+      try { href = new URL(href).hash; } catch {}
+      const id = href.replace(/^#\/?/, "");
+      const note = window.document.getElementById(id);
+      return note.innerHTML;
+    });
+  }
+  const findCites = (el) => {
+    const parentEl = el.parentElement;
+    if (parentEl) {
+      const cites = parentEl.dataset.cites;
+      if (cites) {
+        return {
+          el,
+          cites: cites.split(' ')
+        };
+      } else {
+        return findCites(el.parentElement)
+      }
+    } else {
+      return undefined;
+    }
+  };
+  var bibliorefs = window.document.querySelectorAll('a[role="doc-biblioref"]');
+  for (var i=0; i<bibliorefs.length; i++) {
+    const ref = bibliorefs[i];
+    const citeInfo = findCites(ref);
+    if (citeInfo) {
+      tippyHover(citeInfo.el, function() {
+        var popup = window.document.createElement('div');
+        citeInfo.cites.forEach(function(cite) {
+          var citeDiv = window.document.createElement('div');
+          citeDiv.classList.add('hanging-indent');
+          citeDiv.classList.add('csl-entry');
+          var biblioDiv = window.document.getElementById('ref-' + cite);
+          if (biblioDiv) {
+            citeDiv.innerHTML = biblioDiv.innerHTML;
+          }
+          popup.appendChild(citeDiv);
+        });
+        return popup.innerHTML;
+      });
+    }
+  }
+});
+</script>
+</div> <!-- /content -->
+
+
+
+</body></html>

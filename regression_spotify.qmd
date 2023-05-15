@@ -1,0 +1,511 @@
+---
+title: "Regression models in R"
+author: "Wim Bernasco"
+format: html
+editor: visual
+---
+
+## About the NSC-R workshops and NSC-R Tidy Tuesdays
+
+The NSC-R Workshops is a series of one-hour online (currently hybrid) instructional sessions to support participants in developing their data science skills in R, and to promote open science principles.
+
+The NSC-R workshop meetings are organized by a team affiliated with the Netherlands Institute for the Study of Crime and Law Enforcement (NSCR), but they are open to everyone, regardless of affiliation or skill level.
+
+There are workshops on specific topics (e.g. network analysis, missing values) and Tidy Tuesday workshops that cover more basic skills and materials.
+
+The NSC-R Tidy Tuesday workshop sessions are inspired by the [Tidy Tuesday initiative](https://www.tidytuesday.com/), which is aimed at providing a safe and supportive forum for individuals to practice their data processing and visualization skills in R while working with real-world data.
+
+Check out [the NSC-R Workshops website](https://nscrweb.netlify.app/blog.html) for details of past and future events.
+
+## This Tidy Tuesday on Spotify song popularity
+
+In this workshop, which took place on May 9, 2023, I tried to model song popularity using a dataset of tracks on Spotify.
+
+Even if you have no interest in popular music at all, you may find these workshop materials instructive for getting ideas on how to do regression analysis in R.
+
+I did not delve into statistics, but rather showed how to get linear regression and logistic regression models running in R and generate useful and reproducible output. The focus was on ordinary least squares and logistic regression, but the techniques are easily be generalized to other regression models.
+
+## Packages for this session
+
+I like to work with functions in the `tidyverse` suite of packages, so I load them right at the start.
+
+```{r}
+library(tidyverse)
+```
+
+## Read the data
+
+I will use data from Spotify that were analyzed in the 'real' Tidy Tuesday session of January 21, 2020. This was when the COVID pandemic just started. Remember? You can find the code and findings for that session [here](https://rpubs.com/amrirohman/spotify-song).
+
+```{r}
+# read data
+spotify_songs <-
+read_csv(file = "https://raw.githubusercontent.com/rfordatascience/tidytuesday/master/data/2020/2020-01-21/spotify_songs.csv", show_col_types = FALSE)
+```
+
+To get an idea on what types of variables are included, I use the `glimpse` function.
+
+```{r}
+# data snapshot
+spotify_songs |>
+  glimpse()
+```
+
+## A little bit of pre-processing
+
+I noticed that a unique track (song) is listed multiple times in the data if it appears on multiple albums of an artist (e.g. a "greatest hits" compilation) or an album version with bonuses. It can also appear multiple times in the data if it is in multiple Spotify playlists. Here is an example:
+
+```{r}
+spotify_songs |>
+  filter(track_artist == "Ed Sheeran", 
+         track_name == "Thinking out Loud") |> 
+  arrange(track_id) |> 
+  select(track_artist, track_name, 
+         track_album_name, playlist_name) 
+```
+
+To correct for this feature, I select a single instance of each song and save the result in a new data frame which a label `spotify_songs_clean`. I\
+obviously lose information on album and playlist appearance, but that is no problem for my analysis. To get rid of unwanted information, I unselect album and playlist variables.
+
+```{r}
+spotify_songs_clean <-
+  # start with the raw data
+  spotify_songs |>
+  # define groups 
+  group_by(track_artist, track_name) |>
+  # select only the first instance of each group
+  filter(row_number() == 1) |>
+  # the grouping is no longer needed
+  ungroup() |>
+  # remove variables no longer needed
+  select(-track_id, -track_album_id, -track_album_name,
+         -track_album_release_date, 
+         -playlist_name, -playlist_id, -playlist_genre,
+         -playlist_subgenre) 
+```
+
+## Nominal (categorical) and dichtomous (binary) variables
+
+A nominal or categorical variable is a variable for which the values have no intrinsic natural order. For example, there is no natural order in car brands ("Mercedes", "Toyota", "Ford", "Renault", ...), color ("Red", "Green", "Blue") or gender ("Female", "Male", "Non-binary"), irrespective of whether their values are coded as numbers in your dataset. You could code car brand with numbers in your data for practical reasons ("Mercedes" = 1, "Toyota" = 2, "Ford = 3), but that would not mean that Toyota would be 'larger' in some way than Mercedes.
+
+A dichotomous or binary variable is a variable that can only take on two different values. If these values are $0$ and $1$ they are also referred to as *dummy* variables.
+
+In the Spotify dataset, I create one nominal (categorical) and one binary (dichotomous) variable by converting their original numerical versions into `factors`, which is the term used in R to refer to nominal variables. These are `mode` and `key`. `mode` is a binary variable. It indicates whether the song is in a happy-sounding *major* scale or in a melancholic-sounding *minor* scale. `key` is a nominal variables. It indicates in which musical key the song is played. No problem if you have no idea what this means. There are 12 different keys.
+
+I give the two new factor variables the name of their original versions with an "\_fct" suffix. This will help me remember they are factor varibales when I seen their names.
+
+```{r}
+spotify_songs_clean_fct <-
+  spotify_songs_clean |>
+  mutate(mode_fct = factor(mode, 
+                       levels = 0:1,
+                       labels = c("minor", "major")),
+         key_fct = factor(key, 
+                      levels = 0:11,
+                      labels = c("C", "C#", "D", "D#", "E", "F",
+                                 "F#", "G", "G#", "A", "A#", "B")))
+```
+
+Let me take a snaphot of the new data.
+
+```{r}
+spotify_songs_clean_fct |>
+  glimpse()
+```
+
+## My first ordinary least squares regression
+
+Before trying to model song popularity, let me first get in impression of how popularity is distributed. I like `ggplot` in black and white but have its grey default, so:
+
+```{r}
+spotify_songs_clean_fct |>
+  ggplot() + 
+  geom_histogram(aes(x = track_popularity), 
+                 color = "black",
+                 fill = "white",
+                 binwidth = 5)
+```
+
+Because this looks pretty much like a normal distribution except for the large number of songs with zero popularity, I will remove rows with missing values and, store the result in yet another version of the data.
+
+```{r}
+spotify_songs_clean_NA <-
+  spotify_songs_clean_fct |>
+  filter(track_popularity > 0)
+```
+
+Make the histogram again using the new data.
+
+```{r}
+spotify_songs_clean_NA |>
+  ggplot() + 
+  geom_histogram(aes(x = track_popularity), 
+                 color = "black",
+                 fill = "white",
+                 binwidth = 5)
+```
+
+Now I am ready to conduct a regression analysis. The `lm` function is for ordinary least squares regression. Like all regression functions in R (that I know about) the `lm` function needs at least two arguments. One is the **data** used for estimation, the other is the equation to be estimated (which is called a **formula** in R). The formula must contain only variables included in the data.
+
+Let me first do it and then explain.
+
+```{r}
+lm(formula = track_popularity ~ mode,
+   data    = spotify_songs_clean_NA)
+```
+
+I called the `lm` function with two arguments. The first is the `formula` argument. A formula is an equation with the right-hand side separated from the left-hand side with a tilde symbol ("\~"). In regression contexts, the left-hand side contains the dependent variable, the right-hand side the independent variables. Thus, the equation `Y ~ X1 + X2` says "estimate a linear regression of Y on X1 and X2". The equation `track_popularity ~ mode` says "estimate a linear regression of `track_popularity` on `mode`. Note that the regression coefficients to be estimated are implicit. Thus, if the complete regression equation is $$ Y = \beta_{0} + \beta_{1} \times X_{1} +
+                    \beta_{2} \times X_{2}$$
+
+I do not need to specify the $\beta$ coefficients.
+
+By default, the `lm` function will print just two things, namely (1) an echo of the data and formula arguments, and (2) the estimated values of the unstandardized coefficients, which here are the intercept (constant term) and the coefficient of `mode`.
+
+Thus, according to the model, the mean popularity of songs in a minor scale is 42.88, while songs in a major scale score almost 1 point (0.98) higher. Not much, on a range between 0 and 100, but statistically significant nevertheless.
+
+As we will see in a minute, a lot of additional information is being generated when you estimate a regression model, but it will be hidden if you just call the `lm` function. Funny enough, the `summary` function provides more details.
+
+```{r}
+lm(formula = track_popularity ~ mode_fct,
+   data    = spotify_songs_clean_NA) |>
+  summary()
+```
+
+You may wonder why the independent variable has been labeled `mode_fctmajor` in the output. When the `lm` function encounters a factor (i.e., a nominal variable) in the `formula`, it creates a set of dummy (0/1) variables, one for each category except the first category. These dummy variables are labeled with the name of the factor followed by the label of the category. So, because `minor` is the first category, for `mode` this becomes `mode_fctmajor`. I will now estimate a model with `key_fct` as the only independent variable. Are there any specific keys that make a song more popular than song in other keys?
+
+```{r}
+lm(formula = track_popularity ~ key_fct,
+   data    = spotify_songs_clean_NA) |>
+  summary()
+```
+
+As there are 12 different keys, the `lm` function has automatically created 11 dummy variables (from "C#" to "B"), omitting the "C" key which is the reference category.
+
+The `summary` function can be very practical to quickly display the main features of a model on screen, but my advise is to use it only interactively and not use it in your scripts. Here is why.
+
+To use the information (such as estimates, standard errors, p-values, $R^2$) and do something useful with it, you better save the results of the `lm` function in an R object. To help myself remember that the object is output of the `lm` function, I label it `model_lm_output_1`.
+
+```{r}
+model_lm_output_1 <- 
+  lm(formula = track_popularity ~ mode_fct,
+     data    = spotify_songs_clean_NA)
+```
+
+All details of the estimated model are now in `model_lm_output_1`, and I can still call the `summary` function to see it on screen:
+
+```{r}
+model_lm_output_1 |> 
+  summary()
+```
+
+To make sure that my regression results are reproducible, I should **never** estimate a model and manually copy and paste the results. This is very error-prone and not reproducible.
+
+## Interactions
+
+You are probably aware that in a regression model, the relation between an independent variable and the dependent variable may be affected by the value of a third variable. The resulting effect is called an *interaction* or *interaction effect*. For example, the relation between `Y` and `X1` might depend on the value of `X2`
+
+$$ Y = \beta_{0} + \beta_{1} \times X_{1} +
+                    \beta_{2} \times X_{2} + 
+                    \beta_{3} \times (X_{1} \times X_{2})$$
+
+In our analysis of popularity of Spotify songs, this could be:
+
+$$ track\_popularity = \alpha + \beta_{2} \times danceability +
+                    \beta_{3} \times mode\_fct + 
+                    \beta_{4} \times danceability \times mode\_fct)$$
+
+To include an interaction term in your model, you could create a new variable in your dataset that represents the interaction, typically by multiplying to two independent variables involved (you need to convert the factor variable mode to numeric (0,1) to do this, and mentally keep track of the fact that 0 means the song is in minor key and 1 means the song is in major key):
+
+```{r}
+spotify_songs_clean_NA_Plus <-
+  spotify_songs_clean_NA|>
+  mutate(danceability_x_mode = danceability * mode)
+```
+
+and subsequently include the new variable in your regression model.
+
+```{r}
+lm(formula = track_popularity ~ mode + danceability + 
+     danceability_x_mode,
+   data    = spotify_songs_clean_NA_Plus)
+```
+
+Alternatively, you could use a shorthand notation to include the interaction effect without creating a new variable in your dataset (note that here I do not use the numerical version `mode`but the factor version `mode_fct`).
+
+```{r}
+lm(formula = track_popularity ~ mode_fct + danceability + 
+     danceability : mode_fct,
+   data    = spotify_songs_clean_NA)
+```
+
+The colon symbol (":") can be read as "create a variable that is the multiplication of the variables on both sides of me, and include the result as a variable in the equation". This is shorter, and saves you from remembering how `mode` was coded.
+
+Because in most situations you will also want to include the main effects of the variables involved in the interaction, there is another shorthand notation for this:
+
+```{r}
+lm(formula = track_popularity ~ mode_fct * danceability,
+   data    = spotify_songs_clean_NA)
+```
+
+Let's now include other potentially relevant song characteristics and see whether they help predict popularity:
+
+```{r}
+lm(formula = track_popularity ~ mode_fct + danceability + 
+     energy + loudness + speechiness + acousticness +
+     instrumentalness + liveness + valence + tempo +
+     duration_ms,
+   data    = spotify_songs_clean_NA) |>
+  summary()
+```
+
+If you participated in the workshop, you may remember that the results of the first method of estimating interactions (in which you manually create an interaction term by multiplying the interacting variables) did not completely match those of the two subsequent methods. To understand what error I made and how this affected the results, read the postscriptum at the bottom of this post.
+
+## Standardized estimates
+
+In some situations you would like to have standardized estimates, i.e., estimates after the dependent and all independent variables have been normalized to have mean 0 and standard deviation of 1.
+
+```{r}
+spotify_songs_clean_NA_std <-
+  spotify_songs_clean_NA |>
+  mutate(across(.cols = c(track_popularity,
+                         danceability,
+                         energy,
+                         loudness,
+                         speechiness,
+                         acousticness,
+                         instrumentalness,
+                         liveness,
+                         valence,
+                         tempo,
+                         duration_ms),
+                .fns = ~ (.x - mean(.x)) / sd(.x) ))
+
+  lm(formula = track_popularity ~ danceability + energy + loudness +
+       speechiness + acousticness + instrumentalness + liveness +
+       valence + tempo + duration_ms, 
+     data = spotify_songs_clean_NA_std)  |>
+    summary()
+
+```
+
+There is also a function `lm.beta` (contained in the package with the same name, `lmbeta`) that will do this for you. This saves you from standardizing the variables yourself.
+
+```{r}
+#install.packages("lm.beta")
+library(lm.beta)
+
+lm(formula = track_popularity ~ danceability + energy + loudness +
+       speechiness + acousticness + instrumentalness + liveness +
+       valence + tempo + duration_ms, 
+     data = spotify_songs_clean_NA_std) |>
+     lm.beta() |>
+     summary()
+```
+
+## Tidy workflow: the functions `tidy`, `glance` and `augment`
+
+To make the results of an analysis reproducible, it should be forbidden to copy and paste results from the R Studio console to somewhere else (Excel, Word, or any other software)!
+
+But then how can the results of a regression analysis be stored in a reproducible way?
+
+The three main functions of the package `broom` help us to maintain a tidy workflow by converting the results of regression models, unlike the `summary` function, to plain `tibbles` (`dataframes`).
+
+1.  `tidy` is for the coefficients of you model. It returns a dataframe with as many rows as there are independent variables in the model, and includes the estimate, its standard error, the associated test statistics and p-values for each of them.
+2.  \`glance' is for the overall model statistics, such as $R^2$, and contains only a single row.
+3.  `augment` is for residuals and predictions, and contains as many rows as there are observations in your data. I will not discuss `augment` here.
+
+Let us see how `tidy` works.
+
+```{r}
+library(broom)
+lm(formula = track_popularity ~ danceability + energy + 
+   loudness + speechiness + acousticness + instrumentalness + liveness + valence + tempo + duration_ms, 
+   data = spotify_songs_clean_NA) |>
+  lm.beta() |>
+  tidy(conf.int = TRUE, conf.level = 0.99) 
+```
+
+One advantage is that I can now store these results on disk, possibly after transforming them. Here I will round all numeric variables to 3 decimal digits and save it the file "full_model_estimates.csv".
+
+```{r}
+library(broom)
+lm(formula = track_popularity ~ danceability + energy + 
+   loudness + speechiness + acousticness + instrumentalness + liveness + valence + tempo + duration_ms, 
+   data = spotify_songs_clean_NA) |>
+  lm.beta() |>
+  tidy(conf.int = TRUE, conf.level = 0.99) |>
+  mutate(across(!term, ~ round(.x, digits = 3))) |>
+  write_csv("full_model_estimates.csv")
+```
+
+The functions in `broom` not only assist it generating reproducible results, they also help streamline workflows. For example, we might want to visualize our standardized regression coefficients.
+
+```{r}
+  lm(formula = track_popularity ~ danceability + energy + loudness +
+       speechiness + acousticness + instrumentalness + liveness +
+       valence + tempo + duration_ms, 
+     data = spotify_songs_clean_NA_std) |>
+  tidy(conf.int = TRUE, 
+       conf.level = 0.99) |>
+  filter(term != "(Intercept)") |>
+  ggplot() + 
+  geom_point(aes(y = term, 
+                 x = estimate)) +
+  geom_errorbarh(aes(y = term, 
+                     xmin = conf.low,
+                     xmax = conf.high)) +
+  geom_vline(aes(xintercept = 0), 
+             color = "red")  
+```
+
+Let us see whether we can predict whether a song in in major or minor mode from its other characteristics. I will first display the frequency distribution.
+
+```{r}
+# What is the distribution of mode (major = 1, minor = 0)
+spotify_songs |> count(mode)
+```
+
+Because mode is a binary 0/1 dummy variable I can analyze it with the logit model. The logit (also referred to as 'logistic') model is one a a series of generalized linear models that can be estimated with the `glm` function. Like `lm`, the `glm` takes a `formula` and a `data` argument. In addition, you also need to specific the logit model explicitly.
+
+```{r}
+glm_model_mode <-
+  glm(formula = mode_fct ~ energy + loudness +
+             speechiness + acousticness + 
+             instrumentalness + liveness +
+             valence + tempo + duration_ms, 
+           data = spotify_songs_clean_NA_std,
+           family = binomial(link = "logit"))
+```
+
+```{r}
+glm_model_mode |> summary()
+```
+
+I use `tidy` again to create a data frame with estimates, standard errors, etc.. The `exponentiate` argument adds odds ratios, and the `conf.int` and `conf.level` arguments add 95% confidence intervals. Note that I print the result on screen and also store it on disk.
+
+```{r}
+glm_model_mode |> 
+  tidy(exponentiate = TRUE, 
+       conf.int = TRUE, 
+       conf.level = .95) |>
+  print() |>
+  write_csv("glm_logit_estimates.csv")
+
+```
+
+For reproducibility I also store the overall model statistics (AIC, BIC, etc. on disk.
+
+```{r}
+glm_model_mode |>
+  glance() |> 
+  print() |>
+  write_csv("glm_logit_statistics.csv")
+
+```
+
+```{r}
+glm_model_mode |> 
+  tidy(exponentiate = TRUE, conf.int = TRUE) |> 
+  filter(term != "(Intercept)") |>
+  ggplot() + 
+  geom_point(aes(y = term, 
+                 x = estimate)) +
+  geom_errorbarh(aes(y = term, 
+                     xmin = conf.low,
+                     xmax = conf.high)) +
+  geom_vline(aes(xintercept = 1), 
+             color = "red")  
+
+```
+
+This looks nice, but there are two things I want to improve. First, in the visualization the order of the terms on the vertical axis is alphabetic, whereas I would like to keep the original order in which I entered the terms in the equation. Second, I would like the title of the vertical axis to become "Song feature" and the title of the horizontal axis to be "Odds ratio". Here we go:
+
+```{r}
+glm_model_mode |> 
+  tidy(exponentiate = TRUE, conf.int = TRUE) |> 
+  filter(term != "(Intercept)") |>
+  mutate(term = factor(term, 
+                       levels = term)) |>
+  ggplot() + 
+  geom_point(aes(y = term, 
+                 x = estimate)) +
+  geom_errorbarh(aes(y = term, 
+                     xmin = conf.low,
+                     xmax = conf.high)) +
+  geom_vline(aes(xintercept = 1), color = "red") +
+  xlab("Odds ratio") +
+  ylab("Song feature")
+
+```
+
+## Wrapping up
+
+That's it for this workshop. Thanks for reading the materials. I hope you found them instructive. If you have any comments, suggestions or questions, please drop me a message at `wbernasco@nscr.nl`.
+
+## Postscriptum
+
+During the workshop I made a mistake that created confusion that I could not immediately resolve. In this postscription I explain what happened and how the resulting anomaly can be explained. It might also be instructive if you did not attend the workshop session. Here is what happened. I created an interaction as follows.
+
+```{r}
+spotify_songs_clean_NA_Plus <-
+  spotify_songs_clean_NA|>
+  mutate(danceability_x_mode = danceability * as.numeric(mode_fct))
+```
+
+and subsequently included the new variable in a regression model.
+
+```{r}
+lm(formula = track_popularity ~ mode + danceability + 
+     danceability_x_mode,
+   data    = spotify_songs_clean_NA_Plus)
+```
+
+However, when I specified the regression equation directly without first creating the multiplicative interaction term, the results were different:
+
+```{r}
+lm(formula = track_popularity ~ mode_fct * danceability,
+   data    = spotify_songs_clean_NA)
+```
+
+In the first model, the estimate of `danceability` was 13.138, but in the second model is was 8.462. As I will explain below, it is not a coincidence that the difference, 8.462 - 13.138, equals -4.676, the value of the interaction term. But what happened?
+
+When I used the `mutate` function I thought that `as.numeric(mode_fct)` was creating a dummy variable with `minor` coded as 0 and `major` coded as 1. But I was wrong. It created a binary variable with `minor` coded as 1 and `major` coded as 2. To see this behavior in action, see the following little example:
+
+```{r}
+tibble(var = c(0,1,0,0,1)) |>
+mutate(var_fct = factor(var,
+                        levels = 0:1,
+                        labels = c("minor", "major")),
+       var_fct_num = as.numeric(var_fct))
+```
+
+As you can see, the column `var_fct_num` does not contain 0 and 1, but 1 and 2. This is also what happened when I created the interaction term `danceability_x_mode` with the `mutate` function, using the `as.numeric(mode_fct)` phrase. Thus, I unwillingly multiplied `danceability` by 1 instead of 0, and by 1 instead of 2. In the main materials above (where I corrected the mistake made in te workshop), I did not use `as.mumeric(mode_fct)` but just `mode` (the numeric variable coded 0 and 1).
+
+Let's explain the outcomes using some math. The model I intended to estimate on all occasions was this one, with `mode_fct` coded as 0 and 1.
+
+$$ track\_popularity = \beta_{0} + \beta_{1} \times danceability +
+                    \beta_{2} \times mode\_fct + 
+                    \beta_{3} \times danceability \times mode\_fct$$
+
+However, because of my mistake I estimated another model in which the second `mode_fct` was coded as 1 and 2. To recover the intended model, I should replace the second `mode_fct` in the equation with `mode_fct - 1` we get:
+
+$$track\_popularity = \beta_{0} + 
+                        \beta_{1} \times danceability +
+                        \beta_{2} \times mode\_fct + 
+                        \beta_{3} \times danceability \times (mode\_fct - 1))$$
+
+After rearranging terms, we get
+
+$$ track\_popularity = \beta_{0} + \beta_{1} \times danceability +
+                    \beta_{2} \times mode  + 
+                    \beta_{3} \times danceability \times mode\_fct - \beta_{3} \times danceability$$
+
+which can be simplified to
+
+$$ track\_popularity = \beta_{0} + (\beta_{1} - \beta_{3}) \times danceability +
+                    \beta_{2} \times mode  + 
+                    \beta_{3} \times danceability \times mode\_fct  $$
+
+Thus, the intended estimate of `danceability` was $\beta_{1} - \beta_{3} = 8.462 + 4.676 = 13.138$.
+
+While investigating the issue, I stumbled upon and used a function `model.matrix`. This function takes as argument an estimated model, and shows how all variables in the equation, including the dummy variables automatically created from factors, are numerically coded.
